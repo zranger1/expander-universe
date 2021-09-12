@@ -1,38 +1,24 @@
-## How to install ##library.name##
+## ExpanderVerse ##
 
-### Install with the Contribution Manager
+** WORK IN PROGRESS - COMING SOON! **
 
-Add contributed Libraries by selecting the menu item _Sketch_ → _Import Library..._ → _Add Library..._ This will open the Contribution Manager, where you can browse for ##library.name##, or any other Library you want to install.
+ExpanderVerse lets you drive addressable LEDs with your computer, a USB->Serial adapter, and a Pixelblaze Output Expander board.  Potentially *many* LEDs. 
 
-Not all available Libraries have been converted to show up in this menu. If a Library isn't there, it will need to be installed manually by following the instructions below.
+Each Pixelblaze Output Expander board (PBX) supports up to 8 output channels with up to 800 LEDs each.
 
-### Manual Install
+You can chain up to 8 PBX boards on a single USB->serial port, and ExpanderVerse supports multiple serial ports. Your computer's USB output bandwidth and your ability to supply power to all those LEDs are the largest limiting factors.
 
-Contributed Libraries may be downloaded separately and manually placed within the `libraries` folder of your Processing sketchbook. To find (and change) the Processing sketchbook location on your computer, open the Preferences window from the Processing application (PDE) and look for the "Sketchbook location" item at the top.
+You can drive both WS2812 and APA102 type LED, and it is possible to mix types on a single PBX board.
 
-By default the following locations are used for your sketchbook folder: 
-  * For Mac users, the sketchbook folder is located inside `~/Documents/Processing` 
-  * For Windows users, the sketchbook folder is located inside `My Documents/Processing`
+#### Why use this and not Pixelblaze?   
+I'm a big fan of Pixelblaze. It's generally the fastest way to get to the fun, creative part of an LED project. Most of the time, for most projects, Pixelblaze is more convenient in many ways. However there are some occasions:
 
-Download ##library.name## from ##library.url##
+- You want to smoothly animate an installation with several thousand LEDs
+- You want a hardwired interface rather than depending on WiFi
+- You want a central point of control rather than distributing several microcontrollers
+- You need to control or sync with other devices or media which run on, or communicate via
+computer.
 
-Unzip and copy the contributed Library's folder into the `libraries` folder in the Processing sketchbook. You will need to create this `libraries` folder if it does not exist.
 
-The folder structure for Library ##library.name## should be as follows:
+** watch this space for more information as it develops **
 
-```
-Processing
-  libraries
-    ##library.name##
-      examples
-      library
-        ##library.name##.jar
-      reference
-      src
-```
-             
-Some folders like `examples` or `src` might be missing. After Library ##library.name## has been successfully installed, restart the Processing application.
-
-### Troubleshooting
-
-If you're having trouble, have a look at the [Processing Wiki](https://github.com/processing/processing/wiki/How-to-Install-a-Contributed-Library) for more information, or contact the author [##author.name##](##author.url##).
