@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 //Sets up dedicated clock channel for any APA102 style LEDS attached to this port
 //if you have APAs, you need a clock channel. TODO - set this up automatically when
@@ -7,8 +7,8 @@ package pbxverse.library;
 //
 public class PBXChannelAPAClock extends PBXDataChannel {
 
-	PBXChannelAPAClock(PBXSerial port,byte ch_number,int freq) {
-		super(port, ch_number,CH_APA102_CLOCK);  
+	PBXChannelAPAClock(PBXBoard brd, byte ch_number,int freq) {
+		super(brd, ch_number,CH_APA102_CLOCK);  
 
 		header_size = 10;
 		offs_frequency = 6;

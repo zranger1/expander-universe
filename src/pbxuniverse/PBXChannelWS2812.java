@@ -1,11 +1,11 @@
-package pbxverse.library;
+package pbxuniverse;
 
 public class PBXChannelWS2812 extends PBXDataChannel {
 
 	  // full constructor -- all channel parameters
 	  // TODO - we still don't really handle W, or the -W orders correctly
-	  PBXChannelWS2812(PBXSerial port,byte ch_number,int pixelCount, String colorString) {
-	    super(port,ch_number,CH_WS2812_DATA);
+	  PBXChannelWS2812(PBXBoard brd, byte ch_number,int pixelCount, String colorString) {
+	    super(brd, ch_number,CH_WS2812_DATA);
 
 	    // set data offsets in packet for this type
 	    header_size = 10; 
@@ -39,8 +39,8 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 	  }
 
 	  // 3 channels, RGB color order.  
-	  PBXChannelWS2812(PBXSerial port,byte ch_number, int pixelCount) {
-	    this(port, ch_number,pixelCount,"RGB");
+	  PBXChannelWS2812(PBXBoard brd, byte ch_number, int pixelCount) {
+	    this(brd, ch_number,pixelCount,"RGB");
 	  }
 	    
 	  // bytes per pixel - for WS2812 channels only

@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 import processing.core.*;
 import processing.serial.*;
@@ -8,7 +8,6 @@ import processing.serial.*;
 public class PBXSerial extends Serial {
 	static final int DATA_RATE = 2000000;
 	String name;
-
 	PBXDrawAll draw_cmd;
 
 	PBXSerial(PApplet pApp, String portName) {
@@ -17,11 +16,11 @@ public class PBXSerial extends Serial {
 		draw_cmd = new PBXDrawAll(this);
 	}    
 
-	public String GetPortName() {
+	public String getPortName() {
 		return name;
 	}
 
-	public void DrawAll() {
+	public void drawAll() {
 		draw_cmd.send();
 	}
 }

@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 import java.util.zip.CRC32;
 
@@ -14,7 +14,7 @@ public class PBXChannel {
 	final static byte CH_APA102_CLOCK = 4;	
 
 	PBXSerial outPort;
-	PBXBoard board;
+
 	byte channel_number;
 	byte channel_type;
 	CRC32 crc;
@@ -35,7 +35,6 @@ public class PBXChannel {
 		// defer creation of output buffer 'till we
 		// know how big our packet is going to be.
 		outgoing = null;   
-		board = null;  
 	}
 
 	// create packet-type specific output buffer and initialize the invariant portion
@@ -89,14 +88,7 @@ public class PBXChannel {
 		return Byte.toUnsignedInt(channel_number);
 	}
 
-	public void setBoard(PBXBoard b) {
-		this.board = b;
-		channel_number = (byte) (0xFF & ((b.GetBoardId() << 3) | (int)channel_number));
-	}
-	
-	public float getGlobalBrightness() {
-		return board.getGlobalBrightness();
-	}
+
 
 	// given a color initial "R","G","B","W", and a string specifying
 	// the order of colors for an LED channel, return the index of the

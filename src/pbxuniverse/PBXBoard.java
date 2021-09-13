@@ -1,6 +1,5 @@
-package pbxverse.library;
+package pbxuniverse;
 
-import processing.core.*;
 import java.util.*;
 
 public class PBXBoard {
@@ -18,16 +17,15 @@ public class PBXBoard {
 		channels = new LinkedList<PBXDataChannel>();
 	}
 
-	public PBXSerial GetSerialPort() {
+	public PBXSerial getSerialPort() {
 		return outPort;
 	}
 
-	public int GetBoardId() {
+	public int getBoardId() {
 		return board_id;
 	}
 
-	public void AddChannel(PBXDataChannel ch) {
-		ch.setBoard(this);
+	public void addChannel(PBXDataChannel ch) {
 		channels.add(ch);
 	}
 	
@@ -48,9 +46,19 @@ public class PBXBoard {
 			ch.disableGammaCorrection();
 		}  				
 	}
+	
+	// return total number of pixels attached to this board
+	public int getPixelCount() {
+		int n = 0;
+		for (PBXDataChannel ch : channels) {
+			n += ch.getPixelCount();
+		}  		
+		return n;
+	}
+	
 
 	// transmit all active channels to the expansion board.
-	public void Send() {
+	public void send() {
 		for (PBXChannel ch : channels) {
 			ch.send();
 		}    

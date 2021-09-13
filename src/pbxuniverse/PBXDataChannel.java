@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 import processing.core.PApplet;
 
@@ -12,10 +12,12 @@ public class PBXDataChannel extends PBXChannel {
 	  int offs_pixel_count;
 	  int offs_frequency;
 	  
-	  byte bytes_per_pixel = 3;
+	  byte bytes_per_pixel;
 	  byte color_order;
 	  int pixel_count; 
 	  int frequency;
+	  
+      PBXBoard board;	  
 	  
 	  // support for per-channel brightness & gamma correction
 	  // per channel defaults to 100%, modified by global brightness which we'll
@@ -24,9 +26,21 @@ public class PBXDataChannel extends PBXChannel {
 	  boolean gammaCorrection = false;
 	  byte[] levelTable = new byte[256];		  
 	  
-	   PBXDataChannel(PBXSerial port, byte ch_number,byte ch_type) {
-	      super(port,ch_number,ch_type);   
+	   PBXDataChannel(PBXBoard brd, byte ch_number,byte ch_type) {
+	      super(brd.getSerialPort(),ch_number,ch_type);
+     	      
+	      // construct composite board/channel id so the output expander knows where to send
+	      // the data.
+	      this.board = brd;	      
+	      channel_number = (byte) (0xFF & ((board.getBoardId() << 3) | (int)channel_number));
+	      
 	      bytes_per_pixel = 3;
+	      color_order = 0;
+	      pixel_count = 0;
+	      frequency = 0;
+	      
+	      // Default channel brightness will be (globalBrightness * 1); 
+	      setBrightness(1);  // default channel output will be globalBrightness * 1;
 	   }
 	   
 	  // per pixel data offset (0-3) of each color in pixel data
@@ -38,6 +52,10 @@ public class PBXDataChannel extends PBXChannel {
 	  public void setColorOrder(int r,int g,int b) {
 	    setColorOrder(r,g,b,0);
 	  }   
+	  
+	  public int getPixelCount() {
+		  return pixel_count;	  
+	  }
 	  
 	  public void setPixelCount(int n) {
 	    pixel_count = n;
@@ -84,5 +102,9 @@ public class PBXDataChannel extends PBXChannel {
 			gammaCorrection = false;
 			setBrightness(brightness);  //rebuild byte table
 		}
+			
+		public float getGlobalBrightness() {
+			return board.getGlobalBrightness();
+		}		
 	  
 	}  

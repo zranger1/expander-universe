@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 import processing.core.*;
 
@@ -27,7 +27,7 @@ class PBXPixel {
 		return this.pixel;
 	}
 
-	public void Commit() {
+	public void commit() {
 		channel.setPixel(dataOffset,pixel);
 	}
 

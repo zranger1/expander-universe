@@ -1,4 +1,4 @@
-package pbxverse.library;
+package pbxuniverse;
 
 public class PBXChannelAPA102 extends PBXDataChannel {
 	 
@@ -6,8 +6,8 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 	  // APA protocol is always 4 bytes w/RGB in some order.  The [0]th byte contains 3 bits of flag,
 	  // then 5 bits of global brightness.
 	  // TODO - we're just maxing global brightness for now -- should do something interesting with it.
-	  PBXChannelAPA102(PBXSerial port, byte ch_number,int pixelCount,int freq, String colorString) {
-	    super(port, ch_number,CH_APA102_DATA);
+	  PBXChannelAPA102(PBXBoard brd,byte ch_number,int pixelCount,int freq, String colorString) {
+	    super(brd, ch_number,CH_APA102_DATA);
 	    
 	    // set data offsets in packet for this type
 	    header_size = 13; 
@@ -29,8 +29,8 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 	  }
 
 	  // RGB color order.  
-	  PBXChannelAPA102(PBXSerial port, byte ch_number, int pixelCount) {
-	    this(port,ch_number,2000000,pixelCount,"RGB");
+	  PBXChannelAPA102(PBXBoard brd, byte ch_number, int pixelCount) {
+	    this(brd, ch_number,2000000,pixelCount,"RGB");
 	  }
 	 
 	  // Frequency - APA channels only
