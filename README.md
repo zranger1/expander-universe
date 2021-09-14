@@ -8,6 +8,7 @@ ExpanderVerse lets you drive addressable LEDs with your computer, a USB->Serial 
 
 #### Features
 - Supports multiple serial ports (as many as your computer can handle) and multiple output expander boards (up to 8) per port.
+Serial I/O is multithreaded to maximize bandwidth for large installations.
 - Each expander board channel can drive up to 800 RGB WS2812s, or 600 RGBW LEDs or APA102s.
 - Mix and match LED types, then adjust them to match brightness - software allows both global and per channel brightness control and optional gamma correction (cubic curve).
 

@@ -79,7 +79,7 @@ public class PBXChannel {
 	// TODO - I could test for this, but um... no. 
 	public void send() {
 		packInt(crc_offset,(int) calc_crc());
-		outPort.write(outgoing);
+		outPort.threadedWrite(outgoing);
 	}  
 
 	// Utility - helper for PBXBoard aggregator class

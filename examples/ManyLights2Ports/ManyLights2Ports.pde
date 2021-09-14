@@ -5,9 +5,9 @@ import pbxuniverse.*;
 // This example displays a simple pattern on several strands/strips
 
 ExpanderVerse leds;
-PBXSerial outPort;  // Create object from Serial class
-PBXBoard b0;
-PBXDataChannel ch1,ch2,ch3;
+PBXSerial port1,port2;  // Create object from Serial class
+PBXBoard b0,b1;
+PBXDataChannel ch1,ch2,ch3,ch4,ch5;
 
 int timer;
 int pixelCount;
@@ -23,21 +23,24 @@ void setup() {
   // USB->Serial connectors are the only serial ports available. I'll
   // just take the first one...
 //  String portName = leds.listSerialPorts()[0];
-
-  println(leds.listSerialPorts());
-
-/*  
+ 
   // Open the serial port. If the port isn't available, or doesn't support
   // the required datarate, openPort() will throw an exception
-  outPort = leds.openPort(portName);
+//  outPort = leds.openPort(portName);
+  port1 = leds.openPort("COM5");
+//  port2 = leds.openPort("COM5");
   
   // add an expansion board to our serial port
-  b0 = leds.addOutputExpander(outPort,0);
+  b0 = leds.addOutputExpander(port1,0);
+//  b1 = leds.addOutputExpander(port2,0);
+  
   
   // add three channels of 200 LEDs each to the expansion board we just created
-  ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
-  ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
-  ch3 = leds.addChannelWS2812(b0,2,200,"RGB");   
+//  ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
+//  ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
+//  ch3 = leds.addChannelWS2812(b0,2,200,"RGB"); 
+  ch4 = leds.addChannelAPA102(b0,0,300,2000000,"GBR");
+  ch5 = leds.addChannelAPAClock(b0,1,200000);  
 
   // set Processing's color mode for whatever you find convenient. ExpanderVerse
   // will handle any required conversion.
@@ -47,23 +50,17 @@ void setup() {
   // limit the brightness of our LEDs so we don't kill our power supply
   leds.setGlobalBrightness(0.3);
   
-  // You can also control brightness and gamma correction per channel. Gamma correction
-  // is off by default. Let's enable it on a channel, and set that channel significantly
-  // dimmer than the others.
-  ch2.enableGammaCorrection();
-  ch2.setBrightness(0.1);
-  
   // timer for LED animation
   timer = millis();
   pixelCount = leds.getPixelCount();
   println("pixelCount = ",pixelCount);
-*/
+
 
 }
 
 
 void draw() {
-  return;
+
   // generate a 4 second, 0-1 range sawtooth waveform
   float t1 = float (millis() % 4000)/ 4000.;
    
@@ -84,7 +81,7 @@ void draw() {
   //
   frameCount++;  
   if (frameCount >= 60) {
-//    println((millis() - timer) / frameCount);
+    println((millis() - timer) / frameCount);
     timer = millis();
     frameCount = 0;
   }
