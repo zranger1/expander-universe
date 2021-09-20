@@ -22,11 +22,9 @@ void setup() {
   // Get a list of available serial ports.  On my machine,
   // USB->Serial connectors are the only serial ports available. I'll
   // just take the first one...
-//  String portName = leds.listSerialPorts()[0];
+  String portName = leds.listSerialPorts()[0];
 
-  println(leds.listSerialPorts());
-
-/*  
+  
   // Open the serial port. If the port isn't available, or doesn't support
   // the required datarate, openPort() will throw an exception
   outPort = leds.openPort(portName);
@@ -57,15 +55,13 @@ void setup() {
   timer = millis();
   pixelCount = leds.getPixelCount();
   println("pixelCount = ",pixelCount);
-*/
-
 }
 
 
 void draw() {
-  return;
+  
   // generate a 4 second, 0-1 range sawtooth waveform
-  float t1 = float (millis() % 4000)/ 4000.;
+  float t1 = float (millis() % 4000)/ 4000;
    
   // set the hue of each pixel to a shade of cyan/blue/purple according to
   // its position in the display, animated by our sawtooth wave 

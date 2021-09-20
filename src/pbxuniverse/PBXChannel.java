@@ -75,11 +75,9 @@ public class PBXChannel {
 	}  
 
 	// Send channel packet over the wire, followed by its CRC value
-	// "outgoing" packed buffer must be properly constructed or this will not work! 
-	// TODO - I could test for this, but um... no. 
 	public void send() {
 		packInt(crc_offset,(int) calc_crc());
-		outPort.threadedWrite(outgoing);
+		outPort.write(outgoing);
 	}  
 
 	// Utility - helper for PBXBoard aggregator class
@@ -87,8 +85,6 @@ public class PBXChannel {
 	public int getChannelNumber() {
 		return Byte.toUnsignedInt(channel_number);
 	}
-
-
 
 	// given a color initial "R","G","B","W", and a string specifying
 	// the order of colors for an LED channel, return the index of the

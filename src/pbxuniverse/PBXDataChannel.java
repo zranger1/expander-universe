@@ -75,19 +75,19 @@ public class PBXDataChannel extends PBXChannel {
 //	    println("Bogus call to theoretically virtual object. Just.. no!");
 	  }	    
 	  
-		// set brightness and rebuild byte translation table
-		// for brightness and gamma.  (Gamma correction by cubing the
-		// original, which is reasonably accurate for LEDs --TODO:reference) 
-		public void setBrightness(float b) {
-			brightness = PApplet.constrain(b,0,1); // store this channel's brightness
-			float bri = brightness * board.getGlobalBrightness();  // scale w/global brightness
-			
-			for (int i = 0; i < levelTable.length;i++) {
-				float val = ((float) i)/levelTable.length;
-				if (gammaCorrection == true) val = val*val*val;
-				levelTable[i] = (byte) Math.floor(val * bri*255);
-			}    
-		}
+	  // set brightness and rebuild byte translation table
+	  // for brightness and gamma.  (Gamma correction by cubing the
+	  // original, which is reasonably accurate for LEDs --TODO:reference) 
+	  public void setBrightness(float b) {
+		  brightness = PApplet.constrain(b,0,1); // store this channel's brightness
+		  float bri = brightness * board.getGlobalBrightness();  // scale w/global brightness
+
+		  for (int i = 0; i < levelTable.length;i++) {
+			  float val = ((float) i)/levelTable.length;
+			  if (gammaCorrection == true) val = val*val*val;
+			  levelTable[i] = (byte) Math.floor(val * bri*255);
+		  }    
+	  }
 
 		public float getBrightness() {
 			return brightness;
