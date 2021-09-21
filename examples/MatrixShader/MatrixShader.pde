@@ -1,13 +1,10 @@
 /*
  Expanderverse - Processing->USB->Pixelblaze Output Expander->Many LEDs!
  
- Matrix3DCube example - This example shows how to set up a matrix display and
- draw an illuminated 3D object using Processing's 3D graphics API. 
+ MatrixShader example - This example shows how to set up a matrix display and
+ use an OpenGL fragment shader to draw on your LED display. 
  
- It also demonstrates the use of an offscreen drawing surface, ideal for this purpose
- because the number of LEDs you're driving will usually be far below the number
- of pixels on even a small screen region. 
- 
+ It also demonstrates the use of an offscreen drawing surface.
  9/20/21 JEM (ZRanger1)
 */
 import processing.serial.*;
@@ -30,58 +27,60 @@ PBXDataChannel ch1;
 // global values used for drawing
 int pixelCount;
 int frameCount = 0;
-float theta = 0;
-float theta2 = 0;
-
 PGraphics pgLed;
+
+int nShaders = 4;
+int shaderIndex = 0;
+PShader sfx = null;
+PShader[] shaders;
+float gamma[];
 int timer;
 
-// draws a 3D cube on the LED display.  The cube is white.  
-// Color comes from 3 different types of Processing lights.
-void drawLitCube() {
+// load shader files so the user can use + and - to select them
+void shaderSetup() {
+  shaders = new PShader[nShaders];
+  gamma = new float[nShaders];
+   
+  // each shader has an associated gamma correction level.
+  // which will be set when the shader is selected
+  shaders[0] = loadShader("junglegym.glsl");
+  gamma[0] = 4;
+  shaders[1] = loadShader("backdraft.glsl");
+  gamma[1] = 2;
+  shaders[2] = loadShader("raytracingdemo.glsl");
+  gamma[2] = 3;
+  shaders[3] = loadShader("simplexnoisenot.glsl");
+  gamma[3] = 5;
+} 
+
+// Sends the output of a GLSL fragment shader to the LED display.
+// TODO - change shaders every few seconds.  This means we need more of 'em
+void doShader() {
+  // change shaders if necessary
+  if (sfx != shaders[shaderIndex]) {
+    sfx = shaders[shaderIndex];
+    leds.setGammaCorrection(gamma[shaderIndex]);
+  }
+  
+  // set shader parameters
+  sfx.set("resolution",(float)mWidth,(float)mHeight);  
+  sfx.set("time", millis() / 1000.0);
   
   // Set up our offscreen drawing surface and render our illuminated
   // cube into it
   pgLed.beginDraw();
-  pgLed.colorMode(HSB,1);     
-
-  pgLed.background(0);
-  pgLed.noStroke();  
-
-  pgLed.translate(mWidth / 2,mHeight / 2,-mWidth+2);     
-
-  // Lighting...
-  // Red point light on the right
-  pgLed.pointLight(0, 1, 1, mWidth+4, 1, 8);
-  
-  // Blue directional light from the left
-  pgLed.directionalLight(0.6667, 1, 1, 1, 0, 0); 
-
-  // Green spotlight from the front
-  pgLed.spotLight(0.333, 1, 1, 0, 4, 200, 0, 0, -1,PI / 2, 200); 
-
-  // The cube is rotating. Of course it is. They always do!
-  pgLed.rotateX(-theta2);  
-  pgLed.rotateY(theta);
-  pgLed.rotateZ((theta+theta2)/2);
-
-  pgLed.shininess(10.0);
-  pgLed.box(14);
+  pgLed.noStroke();
+  pgLed.shader(sfx);
+  pgLed.rect(0,0,mWidth,mHeight);
 
   pgLed.endDraw();
-  
-  // get pixels from the offscreen surface 
-  PImage img = pgLed.get();
-  img.loadPixels();
-
+  pgLed.loadPixels();
+   
   // setPixelsFromImage() transfers PImage data to your LED pixels. This technique
   // allows you to use all of Processing's graphical power and its ability to offload
   // graphics computation to the GPU via OpenGl.  
-  leds.setPixelsFromImage(0,pixelCount,img.pixels);
-
-  // update rotation angles
-  theta = (theta + 0.02) % TWO_PI;
-  theta2 = (theta2 + 0.0141) % TWO_PI;     
+  leds.setPixelsFromImage(0,pixelCount,pgLed.pixels);
+    
 }
 
 void setup() {
@@ -109,17 +108,12 @@ void setup() {
   // if we do, we can use it to control per channel brightness and gamma
   // correction.  (The same is true at the expander board level.)
   ch1 = leds.addChannelWS2812(b0,0,mHeight * mWidth,"GRB"); 
-
-  // set Processing's color mode for whatever you find convenient. You 
-  // can even change colorMode at any time.  ExpanderVerse and Processing
-  // will handle any required conversion.
-  colorMode(HSB,1);
     
   // I have no idea how much power is connected to your LEDs, so let's
   // limit the brightness to keep the power supply happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.
-  leds.setGlobalBrightness(0.5);
-  leds.setGammaCorrection(3);
+  leds.setGlobalBrightness(0.75);
+  leds.setGammaCorrection(4);
   
   // Use the setMatrixMap() helper function to create an mWidth * mHeight mapping for our
   // pixels, with 'zigzag' wiring.  You could also do this manually using
@@ -131,24 +125,26 @@ void setup() {
   // can use it for calculation while drawing.  
   pixelCount = leds.getPixelCount();
   
-  // Create our offscreen graphics object and set it up for 3D rendering
-  pgLed = createGraphics(mWidth,mHeight,P3D); 
+  // Create our offscreen graphics object and set it up for rendering.  Either
+  // P2D or P3D will work here since we're only using it as a canvas for the 
+  // shader.
+  // TODO -- better to render at 2x size and filter to downscale?
+  pgLed = createGraphics(mWidth,mHeight,P2D); 
+  shaderSetup();
   
-  // The LED output looks much better if you use the highest available smoothing
-  // on very low-res surfaces.  Rendering a few thousand pixels is so little work 
-  // for a modern GPU that there's no fps penalty for doing so.
-  pgLed.smooth(8);  
   timer = millis();
 }
 
 void draw() {
   background(0);
+  textSize(16*displayDensity());
+  text("Use '+' and '-' keys to change shaders",10,height/2);
  
   // This pattern works by using Processing's 3D API to draw to an offscreen 
   // surface.  It then captures those pixels as a PImage and sends them to
   // the LED display. 
-  drawLitCube();
-
+  doShader();
+  
   // Periodically print the frame rate to the Processing console. 
   // Processing's frame rate is normally capped at 60fps, and 30 when it's
   // running in the background.
@@ -163,4 +159,16 @@ void draw() {
   }
    
   leds.draw();
+}
+
+void keyPressed() {
+  switch (key) {
+    case '+':
+      shaderIndex = (shaderIndex + 1) % nShaders;
+      break;
+    case '-':
+      shaderIndex--;
+      if (shaderIndex < 0) shaderIndex = nShaders - 1;
+      break;
+  }
 }

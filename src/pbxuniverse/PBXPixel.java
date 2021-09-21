@@ -13,7 +13,7 @@ public class PBXPixel {
 
 	public PBXPixel(int c,PBXDataChannel chan,int offset) {
 		this.pixel = c;
-		this.index = offset;
+		this.index = 0;
 		this.channel = chan;
 		this.dataOffset = offset;
 		this.map = new PVector();

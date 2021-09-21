@@ -118,7 +118,7 @@ void setup() {
     
   // Limit the brightness to keep the LED power supply happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.
-  leds.setGlobalBrightness(0.25);
+  leds.setGlobalBrightness(0.3);
   
   // Use the setMatrixMap() helper function to create an mWidth * mHeight mapping for our
   // pixels, with 'zigzag' wiring.  You could also do this manually using

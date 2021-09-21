@@ -2,6 +2,8 @@ package pbxuniverse;
 
 import java.util.*;
 
+import processing.core.PApplet;
+
 public class PBXBoard {
 	static final int DATA_RATE = 2000000;
 	PBXSerial port;
@@ -57,21 +59,24 @@ public class PBXBoard {
 	  return port.parent.getGlobalBrightness();
 	}
 	
-	// enable gamma correction on all this board's channels
-	public void enableGammaCorrection() {
+	/**
+	 * Sets gamma correction factor (power curve exponenent) for this board and all
+	 * channels connected to it.
+	 *   
+	 * @param g global gamma factor (0..1)
+	 */
+	public void setGammaCorrection(float g) {
+		
 		for (PBXDataChannel ch : channels) {
-			ch.enableGammaCorrection();
+			ch.setGammaCorrection(g);
 		}  				
 	}
 	
-	// disable gamma correction on this board's channels
-	public void disableGammaCorrection() {
-		for (PBXDataChannel ch : channels) {
-			ch.disableGammaCorrection();
-		}  				
-	}
-	
-	// return total number of pixels attached to this board
+	/**
+	 *  Returns total number of pixels attached to this board
+	 * 
+	 * @return
+	 */
 	public int getPixelCount() {
 		int n = 0;
 		for (PBXDataChannel ch : channels) {
@@ -87,8 +92,13 @@ public class PBXBoard {
 		}    
 	}
 
-	// set brightness for all channels attached to this board
+    /**	
+	  Sets brightness for board and all channels connnected to it.
+	 * 
+	 * @param b (0..1) brightness
+	 */
 	public void setBrightness(float b) {
+		b = PApplet.constrain(b,(float) 0.0,(float) 1.0);
 		for (PBXDataChannel ch : channels) { ch.setBrightness(b); }    		
 	}
 }

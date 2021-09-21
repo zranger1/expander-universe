@@ -62,7 +62,7 @@ void setup() {
   // little more brightness. If you know your power supply can handle it, by all
   // means, turn it up a little.
   leds.setGlobalBrightness(0.75);
-  leds.enableGammaCorrection();
+  leds.setGammaCorrection(3);
   
   // Use the setMatrixMap() helper function to create an mWidth * mHeight mapping for our
   // pixels, with 'zigzag' wiring.  You could also do this manually using

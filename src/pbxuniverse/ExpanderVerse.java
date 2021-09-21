@@ -44,6 +44,8 @@ TODO - THE MASTER TODO LIST!
   - how best to integrate the mapping functions?  When to autogen the normalized map
   - Power usage estimation and management
   - allow addChannel() to use board index as well as board object pointer
+  - document new gamma behavior and change in all examples
+  - document default image index behavior
  */	        
 
 /**
@@ -70,7 +72,7 @@ public class ExpanderVerse {
 	ArrayList<PBXPixel> pixels;
 	LinkedList<PBXSerial> ports;
 	float globalBrightness = (float) 0.2;
-	boolean gammaCorrection = false;
+	float gammaCorrection = 1;
 	byte[] levelTable = new byte[256];	
 
 	public ExpanderVerse(PApplet parent) {
@@ -195,17 +197,24 @@ public class ExpanderVerse {
 		return ch;
 	}
 
-	// create block of internal pixel objects for a newly addded channel
+	// create block of internal pixel objects for a newly addded channel. 
+	// The image index value is set sequentially for new pixels so that we
+	// can use setPixelsFromImage() immediately on 1D strips even if the user
+	// has not yet created a coordinate map.
 	protected void createPixelBlock(PBXDataChannel ch, int pixelCount) {
+		int imageIndex = getImageIndexMax();
+		
 		for (int i = 0; i < pixelCount; i++) {
 			PBXPixel pix = new PBXPixel(pApp.color(0), ch, i);
+			pix.setIndex(imageIndex++);
 			pixels.add(pix);      
 		}
 	}
 
 	/**
-	 * Gets the total number of pixels associated with this ExpanderVerse object 
-	 * @return pixel count
+	 * Gets the total number of pixels associated with this ExpanderVerse object
+	 * (all attached ports, boards and channels) 
+	 * @return total number of pixels
 	 */
 	public int getPixelCount() {
 		int n = 0;
@@ -221,30 +230,33 @@ public class ExpanderVerse {
 		return pixels;		
 	}
 
-	// set global brightness and rebuilt byte translation table
-	// for brightness and gamma.  (Gamma correction by cubing the
-	// original 
+	/**
+	 * Sets brightness for all ports, boards and channels.
+	 *   
+	 * @param b global brightness level (0..1)
+	 */
 	public void setGlobalBrightness(float b) {
 		globalBrightness = PApplet.constrain(b,(float) 0.0,(float) 1.0);
-		for (PBXSerial p : ports) { p.setGlobalBrightness(b); }				
+		for (PBXSerial p : ports) { p.setBrightness(b); }				
 	}
 
 	public float getGlobalBrightness() {
 		return globalBrightness;
 	}
 
-	public void enableGammaCorrection() {
-		for (PBXSerial p : ports) { p.enableGammaCorrection(); }			
-	}
-
-	public void disableGammaCorrection() {
-		for (PBXSerial p : ports) { p.disableGammaCorrection(); }			
+	/**
+	 * Sets gamma correction factor (power curve exponenent) for all ports, boards and channels.
+	 *   
+	 * @param b global gamma factor (0..1)
+	 */
+	public void setGammaCorrection(float g) {
+		gammaCorrection = Math.max(0,g);
+		for (PBXSerial p : ports) { p.setGammaCorrection(g); }			
 	}
 
 	public void setPixel(int index,int c) {
 		pixels.get(index).setColor(c);
 	}
-
 
 	// Finally!  Actually send something to the LEDs.
 	public void draw() {
@@ -272,6 +284,17 @@ public class ExpanderVerse {
 	//////////////////////////////////////////////////////////////////////////////// 
 	// Coordinate mapping and related functions
 	////////////////////////////////////////////////////////////////////////////////
+	
+	// return the highest image index value in the pixel list.  Called
+	// when setting up new blocks of pixels.
+	int getImageIndexMax() {
+	  int nMax = 0;
+	// make a pass through the entire map to find min/max coords
+	  for (PBXPixel p : pixels) {
+	  	if (p.index > nMax) nMax = p.index;
+	  }
+	  return nMax;
+	}		
 
 	// The image index tells which pixel in a PImage of 
 	// appropriate size corresponds to this LED

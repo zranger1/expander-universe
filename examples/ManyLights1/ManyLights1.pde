@@ -46,10 +46,11 @@ void setup() {
   leds.setGlobalBrightness(0.3);
   
   // You can also control brightness and gamma correction per channel. Gamma correction
-  // is off by default. Let's enable it on a channel, and set that channel significantly
+  // is linear by default. Let's change it on a channel, and set that channel a little
+  // darker than the others.
   // dimmer than the others.
-  ch2.enableGammaCorrection();
   ch2.setBrightness(0.1);
+  ch2.setGammaCorrection(2);  
   
   // timer for LED animation
   timer = millis();

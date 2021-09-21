@@ -64,21 +64,29 @@ public class PBXSerial extends Serial {
 		boards.add(b);
 	}
 	
-	public void enableGammaCorrection() {
-		for (PBXBoard b : boards) { b.enableGammaCorrection(); }			
+	/**
+	 * Sets gamma correction factor (power curve exponenent) for this port and and all
+	 * boards and channels connected to it.
+	 *   
+	 * @param g global gamma factor (0..1)
+	 */	
+	public void setGammaCorrection(float g) {
+		for (PBXBoard b : boards) { b.setGammaCorrection(g); }			
 	}
 	
-	public void disableGammaCorrection() {
-		for (PBXBoard b : boards) { b.disableGammaCorrection(); }			
-	}	
-	
-	public void setGlobalBrightness(float bri) {
+    /**	
+	  Sets brightness for this port and all boards and channels connnected to it.
+	 * 
+	 * @param b (0..1) brightness
+	 */	
+	public void setBrightness(float bri) {
 		for (PBXBoard b : boards) { b.setBrightness(bri); }			
 	}
 		
 	/**
-	 * Gets the total number of pixels associated with this output expander 
-	 * @return pixel count
+	 *  Returns total number of pixels attached to this output expander board
+	 * 
+	 * @return
 	 */
 	public int getPixelCount() {
 		int n = 0;
