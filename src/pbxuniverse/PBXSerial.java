@@ -93,49 +93,7 @@ public class PBXSerial extends Serial {
 		for (PBXBoard b : boards) { n += b.getPixelCount(); }		
 		return n;
 	}	
-/* THE OLD WAY		
-	public synchronized void requestSerialIO(int cmd) {
-		// if the serial comms thread is busy, wait for it to finish,
-		// then issue the next command.
-		while (writeCommand != NO_COMMAND) {
-            try { 
-                wait();
-            } catch (InterruptedException e)  {
-                Thread.currentThread().interrupt(); 
-            }	
-		}
-		writeCommand = cmd;
-		notifyAll();
-	}
-	
-	public synchronized void ioThreadRunner() {
-		// keep this thread blocked as much as possible while waiting for
-		// a command
-		while (writeCommand == NO_COMMAND) {
-			try {
-				wait();
-			} catch (InterruptedException e)  {
-				Thread.currentThread().interrupt(); 
-			}						
-		}
 
-		// when a write request arrives, the main thread will block 'till we're
-		// done sending.
-		switch(writeCommand) {
-		case CMD_SEND_DATA:
-			for (PBXBoard b : boards) { b.send(); }
-			writeCommand = NO_COMMAND;
-			break;
-		case CMD_DRAW_ALL:
-			draw_cmd.send();
-			writeCommand = NO_COMMAND;
-			break;					
-		}
-		notifyAll();		
-	}
-	
-*/	
-	
 	public void requestSerialIO(int cmd) {
 		// This busy wait is a couple of fps faster than the more "correct" locking
 		// version. If the serial comms thread is busy, spin while waiting for it to finish

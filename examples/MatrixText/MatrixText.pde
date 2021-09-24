@@ -64,7 +64,7 @@ void drawSomeText() {
 void scrollSomeText() {
   textAlign(LEFT,CENTER); 
   
-  // gold/orange - should be easily visisble on blue background
+  // gold/orange - should be easily visisble on most backgrounds
   fill(.075,1,1);
   
   // draw string
@@ -87,6 +87,7 @@ void scrollSomeText() {
 
 void setup() {
   size(640,480);
+  smooth(8);  // may as well use *all* the anti-aliasing
   
   // First create an ExpanderVerse object to manage this display
   leds = new ExpanderVerse(this);
@@ -145,7 +146,9 @@ void setup() {
 
 int patternSwitch = 0;
 void draw() {
-  background(0.6667,1,0.1);
+  // slowly change background colors to show anti-aliasing vs. background
+  float bgHue = ((float) (millis() % 20000)) / 20000.0;
+  background(bgHue,1,0.075);
 
   // Both pattern variants draw text by rendering it to the Processing canvas,
   // then settingthe LED pixels from the resulting PImage.  This allows OpenGL to do 

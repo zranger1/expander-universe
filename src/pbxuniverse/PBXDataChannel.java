@@ -26,6 +26,17 @@ public class PBXDataChannel extends PBXChannel {
 
 	// gamma defaults to linear -- whatever the LEDs are gonna do
 	float gammaCorrection = 1;
+	
+	// per-channel color correction factors and tables to balance colors between strips of different
+	// correction values are floating point, in the range (0-1)
+	// TODO - not yet fully implemented.
+	float cfR = 0; 
+	float cfG = 0;
+	float cfB = 0;
+	byte[] rCorrect = new byte[256];
+	byte[] gCorrect = new byte[256];
+	byte[] bCorrect = new byte[256];	
+	
 	byte[] levelTable = new byte[256];		  
 
 	PBXDataChannel(PBXBoard brd, byte ch_number,byte ch_type) {
@@ -81,6 +92,31 @@ public class PBXDataChannel extends PBXChannel {
 	public void setPixel(int index,int c) {
 		//	    println("Bogus call to theoretically virtual object. Just.. no!");
 	}	    
+	
+	// build brightness/gamma table and color correction tables 
+	// Variable gamma correction is done by power curve, which gives the user control
+	// over the shape of the curve and can actually be fairly accurate, depending on the
+	// value you choose and your LEDs.		
+	void buildColorTables()  {
+		// scale everything with global brightness
+		float bri = brightness * board.getGlobalBrightness(); 		
+		
+		for (int i = 0; i < levelTable.length;i++) {
+			
+			// linear brightness value...
+			float val = ((float) i)/levelTable.length;
+			
+			// calculate gamma corrected brightness
+			val = bri * (float) Math.pow(val,gammaCorrection);
+			levelTable[i] = (byte) Math.floor(val*255);
+			
+            // precalculate white corrected values for R,G and B, so we can just look them
+			// up at pixel setting time.
+			rCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfR)) * 255));
+			gCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfG)) * 255));
+			bCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfB)) * 255));			
+		}    				
+	}
 
     /**	
 	  Sets brightness for this channel.
@@ -89,16 +125,7 @@ public class PBXDataChannel extends PBXChannel {
 	 */
 	public void setBrightness(float b) {
 		brightness = PApplet.constrain(b,0,1); // store this channel's brightness
-		float bri = brightness * board.getGlobalBrightness();  // scale w/global brightness
-
-		// build brightness/gamma translation table
-		// Variable gamma configuration is done by power curve, which can 
-		// actually be fairly accurate, depending on the power you choose and your LEDs.		
-		for (int i = 0; i < levelTable.length;i++) {
-			float val = ((float) i)/levelTable.length;
-			val = (float) Math.pow(val,gammaCorrection);
-			levelTable[i] = (byte) Math.floor(val * bri*255);
-		}    
+        buildColorTables();
 	}
 
 	public float getBrightness() {
@@ -112,8 +139,28 @@ public class PBXDataChannel extends PBXChannel {
 	 */		
 	public void setGammaCorrection(float g) {
 		gammaCorrection = Math.max(0, g);
-		setBrightness(brightness);  //rebuild byte table
+        buildColorTables();
 	}
+	
+	/**
+	 * Sets r,g and b color correction factors -- amount subtracted from full white
+	 * to produce the particular 'white' you want to match. Values should be in the
+	 * range (0..1)
+	 * <p>
+	 * TODO: Tables are built, but not yet implemented in pixel setting
+	 * methods. Need to think about linearity vs brightness a little more, plus
+	 * find a way to minimize the performance impact, since this has to be
+	 * done per color, per pixel at render time. <p>
+	 * Also, we'll need tools to help the user set this up.
+	 */			
+	public void setColorCorrection(float r,float g, float b) {
+		//store correction factors,
+		//TODO - rebuild tables
+		cfR = r;
+		cfG = g;
+		cfB = b;
+		buildColorTables();
+	}	
 
 	public float getGlobalBrightness() {
 		return board.getGlobalBrightness();

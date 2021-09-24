@@ -34,16 +34,17 @@ import java.util.*;
 
 /*
 TODO - THE MASTER TODO LIST!
-  - PImage/PGraphics transfer
+  - (MOSTLY DONE) PImage/PGraphics transfer
   - Disable/enable channels??      
-  - what do we need to do to enable multithread/multicore pixel rendering?   Anything?
+  - (PROBABLY NOTHING) what do we need to do to enable multithread/multicore pixel rendering?   Anything?
   - keep looking for ways to simplify and automate the display creation process
   - write more damn examples! Fonts, shapes, noise, shaders...
   - optimize getPixelCount() - it doesn't need to actually recheck unless config has changed  
   - add coordinate translate, scale, rotate
-  - how best to integrate the mapping functions?  When to autogen the normalized map
+  - (MOSTLY DONE) how best to integrate the mapping functions?  When to autogen the normalized map
   - Power usage estimation and management
   - allow addChannel() to use board index as well as board object pointer
+  - add per channel color correction
   - document new gamma behavior and change in all examples
   - document default image index behavior
  */	        
@@ -61,7 +62,7 @@ TODO - THE MASTER TODO LIST!
  <p>
  Pixel index, order and offsets will be determined by the order in which you 
  add the boards.  You can add x,y,z mapping after all the channels are created.
- 
+
  <li>use the SetPixel-ish functions to set your LEDs
  <li>call Expanderverse.draw() to render all the pixels when set.    
  */
@@ -189,26 +190,34 @@ public class ExpanderVerse {
 	 * @param frequency desired output clock frequency (in hz) for this channel, e.g 2000000, 800000
 	 * @return channel object
 	 */
-	// TODO - should I just set this up w/the first apa data channel so the user doesn't have
-	// to worry about it?  Probably.
-	
+
 	public PBXDataChannel addChannelAPAClock(PBXBoard board,int chNumber,int frequency) {     
 		PBXDataChannel ch = board.addChannelAPAClock((byte) chNumber,frequency);
 		return ch;
 	}
 
 	// create block of internal pixel objects for a newly addded channel. 
-	// The image index value is set sequentially for new pixels so that we
-	// can use setPixelsFromImage() immediately on 1D strips even if the user
-	// has not yet created a coordinate map.
+	// The mapping and image index values are set sequentially for new pixels
+	// so that we can use setPixelsFromImage() and do map-related rendering
+	// immediately. <p> 
+	// Everything in ExpanderVerse is 3D.  If the user does not specify a mapping,
+	// the LEDs will be assumed to be in a sequential strip, of dimension [n,1,1].
+	//
 	protected void createPixelBlock(PBXDataChannel ch, int pixelCount) {
+		PVector m = new PVector();
 		int imageIndex = getImageIndexMax();
-		
+
+		// add and map new pixels
 		for (int i = 0; i < pixelCount; i++) {
 			PBXPixel pix = new PBXPixel(pApp.color(0), ch, i);
+			m.set(imageIndex,0,0);
+			pix.setMapCoordinates(m);
 			pix.setIndex(imageIndex++);
 			pixels.add(pix);      
 		}
+
+		// after the new block is added, rebuild the normalized coordinate map
+		buildNormalizedMap();
 	}
 
 	/**
@@ -240,6 +249,9 @@ public class ExpanderVerse {
 		for (PBXSerial p : ports) { p.setBrightness(b); }				
 	}
 
+	/**
+	 * Get the current global brightness setting (0..1)
+	 */	
 	public float getGlobalBrightness() {
 		return globalBrightness;
 	}
@@ -254,11 +266,48 @@ public class ExpanderVerse {
 		for (PBXSerial p : ports) { p.setGammaCorrection(g); }			
 	}
 
+	/**
+	 * Sets the pixel at the specified index to a color.
+	 * <p>
+	 * Note: The color parameter 'c' is shown as an int here. It's actually a processing
+	 * color() type, which is really just an int encoded by Processing's internal preprocessor.
+	 * This convenience is not available to Java libraries.  From Processing though, you can call it
+	 * like this:<p>
+	 * setPixel(0,color(r,g,b))<p>
+	 * or, depending on your colorMode()<p>
+	 * setPixel(0,color(h,s,v))<p>
+	 * and the right thing will happen.
+	 * 
+	 */
 	public void setPixel(int index,int c) {
 		pixels.get(index).setColor(c);
 	}
 
-	// Finally!  Actually send something to the LEDs.
+	/**
+	 * Sets all pixels associated with this ExpanderVerse object to
+	 * a single color.
+	 * @param color
+	 */
+	public void setAllPixels(int color) {
+		for (PBXPixel pix : pixels) { pix.setColor(color); }
+	}
+
+	/**
+	 * Sets all pixels associated with this ExpanderVerse object to
+	 * black (off)
+	 */	
+	public void clear() {
+		setAllPixels(0);
+	}
+
+	/**  
+	 * Render all pixels to the LEDs on all ports, adapters and channels.
+	 * <p>
+	 * This is the default drawing method, and is appropriate for most situations.  If you
+	 * need color correction (white balancing between different LED types on different
+	 * channels) or HDR color (more dynamic range from some APA102-like LEDs, nasty 
+	 * flickering from others), use drawEx() instead.
+	 */
 	public void draw() {
 
 		// commit backing buffer to the outgoing serial packets
@@ -281,28 +330,60 @@ public class ExpanderVerse {
 		for (PBXSerial p : ports) { p.sendDrawAll(); }
 	}  	
 
+	/**  
+	 * Render all pixels to the LEDs on all ports, adapters and channels.  
+	 * Same as draw(), except drawEx() performs color correction and if necessary,
+	 * remaps Processing's 24 bit color to HDR if supported by the connected LEDs.
+	 * <p>
+	 * There is a small performance penalty for the extra computation, and the visible
+	 * difference is minimal in the most common display configurations, so choice of drawEx() vs draw()
+	 * is left to the user.
+	 */
+	public void drawEx() {
+
+		// commit backing buffer to the outgoing serial packets, using the enhanced,
+		// color corrected pixel value generator (commitEx)
+		for (PBXPixel pix : pixels) { pix.commitEx(); }
+		for (PBXSerial p : ports) { p.sendPixelData(); }
+		for (PBXSerial p : ports) { p.sendDrawAll(); }
+	}  	
+
+
+
+
+
 	//////////////////////////////////////////////////////////////////////////////// 
 	// Coordinate mapping and related functions
 	////////////////////////////////////////////////////////////////////////////////
-	
+
 	// return the highest image index value in the pixel list.  Called
 	// when setting up new blocks of pixels.
 	int getImageIndexMax() {
-	  int nMax = 0;
-	// make a pass through the entire map to find min/max coords
-	  for (PBXPixel p : pixels) {
-	  	if (p.index > nMax) nMax = p.index;
-	  }
-	  return nMax;
+		int nMax = 0;
+		// make a pass through the entire map to find min/max coords
+		for (PBXPixel p : pixels) {
+			if (p.index > nMax) nMax = p.index;
+		}
+		return nMax;
 	}		
 
-	// The image index tells which pixel in a PImage of 
-	// appropriate size corresponds to this LED
+	/** The image index tells which pixel in a PImage of 
+	 * appropriate size corresponds to this LED
+	 * 
+	 * @param pix index of the LED in ExpanderVerse's pixel list.  
+	 * @param imageIndex the index in a PImage's pixel array that this pixel should use
+	 * when transferring
+	 */
 	public void setImageIndex(int pix,int imageIndex) {
 		pixels.get(pix).setIndex(imageIndex);
 	}
 
-	// set 3D world coordinates of pixel
+	/**
+	 *  Sets 3D world coordinates for the specified pixel
+	 * @param i index of LED 
+	 * @param m 3D vector of world coordinates. If you're not using a 
+	 * coordinate dimension, it should be set to 0.
+	 */
 	public void setMapCoordinates(int i,PVector m) {
 		pixels.get(i).setMapCoordinates(m);
 	}	
@@ -337,7 +418,7 @@ public class ExpanderVerse {
 		// now make a pass through the specified region and build the normalized map
 		for (int i = 0; i < count; i++) {
 			PBXPixel p = pixels.get(i+start);
-			
+
 			p.nMap.set(p.map);   
 			p.nMap.sub(vMin);
 			// weird.. there are per-element add/subtract PVector menthods in Java, but no
@@ -347,7 +428,7 @@ public class ExpanderVerse {
 			p.nMap.z /= vMax.z;
 		}		
 	}
-	
+
 	/**
 	 *  Build a normalized map from the world coordinate map. World coordinate
 	 *  map must be set before calling this method or mayhem will ensue.
@@ -434,37 +515,34 @@ public class ExpanderVerse {
 		}
 	}
 
-
-
 	/**
-	 * Read a Pixelblaze compatible 2d/3d JSON map into the current ExpanderVerse's map
-	 * @param fileName Name of file to read 
+	 * Read a Pixelblaze compatible 2d/3d JSON map into the current ExpanderVerse's map, starting
+	 * at the specified index. Since all maps in ExpanderVerse are 3D, if you import a 2D map, the
+	 * z coordinate will be automatically set to zero.
+	 * @param fileName Name of file to read
+	 * @param index starting destination index for map 
 	 * @param scale Coordinate multiplier for scaling output
-	 * @return true if successful, false if unable to load the specified file 
 	 */
-	public boolean importPixelblazeMap(String fileName,float scale) {
-
+	public void importPixelblazeMap(String fileName,int index, float scale) {
+		PVector m = new PVector();
 		JSONArray json = pApp.loadJSONArray(fileName);
 
 		for (int i = 0; i < json.size(); i++) {
-			float x,y,z;
-
 			JSONArray mapEntry = json.getJSONArray(i);
-			float [] coords = mapEntry.getFloatArray();  
-
-			x = scale * coords[0];
-			y = scale * coords[1];
-			z = scale * ((coords.length == 3) ? z = coords[2] : 0);
-
-			//			ScreenLED led = new ScreenLED(this,scale * x,scale * y,scale * z);
-			//			led.setIndex(i);
-			//			object.add(led);
+			
+			float [] coords = mapEntry.getFloatArray();
+			
+            m.set(coords[0],coords[1],(coords.length == 3) ? coords[2] : 0);
+            m.mult(scale);
+            setMapCoordinates(index,m);
+            index++;
 		}
-
-		return true;
+		buildNormalizedMap();
 	}
 
-	/* TODO - decide if we need export and how to handle it	
+  /* BEGIN ExportPixelblazeMap block
+   * TODO - We'll want a saveMap method at some point.  Here's the implementation from
+   * pixelTeleporter to use as a guide	
 
  // comparator for sorting.  Used by exportPixeblazeMap()
 	class compareLEDIndex implements Comparator<ScreenLED> {
@@ -502,7 +580,7 @@ public class ExpanderVerse {
 		}  
 		return app.saveJSONArray(json,fileName);  
 	}
-END - ExportPixelblazeMap */
+END - ExportPixelblazeMap block */
 
 }
 

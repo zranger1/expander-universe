@@ -29,7 +29,7 @@ int pixelCount;
 int frameCount = 0;
 PGraphics pgLed;
 
-int nShaders = 4;
+int nShaders = 5;
 int shaderIndex = 0;
 PShader sfx = null;
 PShader[] shaders;
@@ -51,10 +51,11 @@ void shaderSetup() {
   gamma[2] = 3;
   shaders[3] = loadShader("simplexnoisenot.glsl");
   gamma[3] = 5;
+  shaders[4] = loadShader("colormixing.glsl");
+  gamma[4] = 3;
 } 
 
 // Sends the output of a GLSL fragment shader to the LED display.
-// TODO - change shaders every few seconds.  This means we need more of 'em
 void doShader() {
   // change shaders if necessary
   if (sfx != shaders[shaderIndex]) {
@@ -79,8 +80,7 @@ void doShader() {
   // setPixelsFromImage() transfers PImage data to your LED pixels. This technique
   // allows you to use all of Processing's graphical power and its ability to offload
   // graphics computation to the GPU via OpenGl.  
-  leds.setPixelsFromImage(0,pixelCount,pgLed.pixels);
-    
+  leds.setPixelsFromImage(0,pixelCount,pgLed.pixels);   
 }
 
 void setup() {
@@ -109,8 +109,7 @@ void setup() {
   // correction.  (The same is true at the expander board level.)
   ch1 = leds.addChannelWS2812(b0,0,mHeight * mWidth,"GRB"); 
     
-  // I have no idea how much power is connected to your LEDs, so let's
-  // limit the brightness to keep the power supply happy.  If you know
+  // limit the maximum brightness to keep the power supply happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.
   leds.setGlobalBrightness(0.75);
   leds.setGammaCorrection(4);
@@ -128,8 +127,9 @@ void setup() {
   // Create our offscreen graphics object and set it up for rendering.  Either
   // P2D or P3D will work here since we're only using it as a canvas for the 
   // shader.
-  // TODO -- better to render at 2x size and filter to downscale?
-  pgLed = createGraphics(mWidth,mHeight,P2D); 
+  pgLed = createGraphics(mWidth,mHeight,P2D);
+  
+  // load and intialize all the shaders we'll be using
   shaderSetup();
   
   timer = millis();
@@ -140,7 +140,7 @@ void draw() {
   textSize(16*displayDensity());
   text("Use '+' and '-' keys to change shaders",10,height/2);
  
-  // This pattern works by using Processing's 3D API to draw to an offscreen 
+  // This pattern works by using an OpenGL fragment shader to draw to an offscreen 
   // surface.  It then captures those pixels as a PImage and sends them to
   // the LED display. 
   doShader();
@@ -161,6 +161,7 @@ void draw() {
   leds.draw();
 }
 
+// handle shader switching keys for demo
 void keyPressed() {
   switch (key) {
     case '+':
