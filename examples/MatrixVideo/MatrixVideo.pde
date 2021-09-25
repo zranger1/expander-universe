@@ -5,6 +5,12 @@
  display a portion of a video on it.  Requires the processing.video library. 
  If you need it, you can install from the menu: 'Sketch/Import Library.../Add Library'
  
+ Requires a Pixelblaze Output Expander board, a compatible USB->Serial adapter and
+ a supported (by the Output Expander) addressable LED matrix.
+ 
+ NOTE: YOU WILL HAVE TO CONFIGURE THIS SKETCH FOR YOUR LED SETUP BEFORE RUNNING THIS
+ SKETCH. See setup() below for details.
+ 
  9/20/21 JEM (ZRanger1)
 */
 import processing.serial.*;

@@ -4,6 +4,12 @@
  1D Strip with Patterns Example  - This example shows how to set up an LED strip or
  stand display and draw to it using Pixelblaze style patterns.  
  
+ Requires a Pixelblaze Output Expander board, a compatible USB->Serial adapter and
+ a supported (by the Output Expander) strip or strand of addressable LEDs.
+ 
+ NOTE: YOU WILL HAVE TO CONFIGURE THIS SKETCH FOR YOUR LED SETUP BEFORE RUNNING THIS
+ SKETCH. See setup() below for details 
+ 
  9/20/21 JEM (ZRanger1)
 */
 
@@ -26,6 +32,7 @@ PBXDataChannel ch1;
 int nPatterns = 4;
 int patternIndex = 0;
 PatternFn[] patterns;
+String[] patternText;
 
 // convert's pixelblaze's 65.536*n second interval values to milliseconds
 float getPixelblazeTime(float n) {
@@ -52,11 +59,19 @@ float wave(float n) {
 // between them with a keypress
 void patternSetup() {
   patterns = new PatternFn[nPatterns];
+  patternText = new String[nPatterns];
   
   patterns[0] = new Edgeburst();
+  patternText[0] = new String("Edgeburst");
+  
   patterns[1] = new newPattern();
+  patternText[1] = new String("Default Pattern");
+  
   patterns[2] = new noiseFire1D();
+  patternText[2] = new String("Simple Noise-based Fire");
+  
   patterns[3] = new rainbowMelt();
+  patternText[3] = new String("Rainbow Melt");
 }
 
 // Pixelblaze Edgeburst pattern, sped up just a bit
@@ -108,36 +123,40 @@ class rainbowMelt implements PatternFn {
  
 // really, really simple Perlin noise based fire. 
 class noiseFire1D implements PatternFn {
-  float noiseScale = 0.25;
-  float flameHeight = 0;
+  float noiseScale = .125;
   void runPattern() {
     float h,s,b,pct;
+    float t1;
     PVector n = new PVector();
+    PVector m = new PVector();
     
-    float t1 = millis()/60; 
+    // get a noise value to control the fire's speed and movement
+    t1 = 5 + noise(millis() / 100) * 30;
+    t1 = millis()/t1;    
+    
     for (PBXPixel p : leds.getPixelList()) {
+      p.getMapCoordinates(m);
       p.getNormalizedCoordinates(n);
       
-      // grab a single noise value that we manipulate to produce the
-      // rest of the "fire"
-      b = noise(noiseScale*n.x,noiseScale * t1); 
+      // get a noise value that we manipulate to produce the fire's color pattern
+      b = noise(noiseScale*(t1-m.x)); b = b * b; 
       
       // create a steep curve from 1 to 0 as we move along the strip
       pct = 1-n.x; 
-      pct = constrain(pct * (flameHeight + pct),0,1);
+      pct = constrain(pct * pct,0,1);
       
       // set up brightness to generally decay towards the end 
       b = b * pct ;    
 
       // add some white to the super hot parts by desaturating a little
       // near the bottom of the strip.
-      s = 1.4 - (b * pct);
+      s = 1.25 - b;
       
-      // shift hue a little based on the noise. Negative shift values
+      // shift hue a little based on 'temperature'. Negative shift values
       // will make the fire redder, positive values yellower, so we've
       // aranged it so way more red (positive) values will be produced
       // near the "cool" end of the fire.
-      h = 0.027 + (0.04 * (b-0.5));
+      h = 0.027 + (0.06 * b * (pct-0.5));
      
       p.setColor(color(h,s,b));       
     }
@@ -171,6 +190,9 @@ void setup() {
   // correction.  (The same is true at the expander board level.)
   ch1 = leds.addChannelAPA102(b0,0,300,4000000,"BGR"); 
   
+  // (to use WS2812-protocol LEDs instead, substitute:
+  // ch1 = leds.addChannelWS2812(b0,0,300,"BGR");    
+  
   // if using APA102-style LEDs, you also need to dedicate one channel on the
   // expander to the APA's clock signal.  We'll create a clock channel on
   // board channel 2.  The clock channel should be set to the same speed as
@@ -187,6 +209,7 @@ void setup() {
   // Limit the brightness to keep  power supplies happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.
   leds.setGlobalBrightness(0.5);  
+  // Turn system gamma correction off.   
   leds.setGammaCorrection(1);
   
   // load and intialize all the patterns we'll be using
@@ -195,9 +218,13 @@ void setup() {
 
 int frameCount = 0;
 void draw() {
+  int yPos = height / 4;
   background(0);
-  textSize(16*displayDensity());
-  text("Use '+' and '-' keys to change shaders",10,height/2);  
+  textSize(14*displayDensity());
+  text("Use '+' and '-' keys to change patterns",10,yPos);
+  yPos += 20 * displayDensity();
+  textSize(10 * displayDensity());
+  text(patternText[patternIndex],10,yPos);
  
   // The patterns in this example draw to the LEDs by using a Pixelblaze-like method.
   // They Loop through every pixel in the display at and render it based on its mapped

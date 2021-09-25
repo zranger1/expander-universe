@@ -2,19 +2,19 @@
  Expanderverse - Processing->USB->Pixelblaze Output Expander->Many LEDs!
  
  Matrix3DCube example - This example shows how to set up a matrix display and
- draw an illuminated 3D object using Processing's 3D graphics API. 
+ draw an illuminated 3D object using Processing's 3D graphics API. It also 
+ demonstrates the use of an offscreen drawing surface.
  
- It also demonstrates the use of an offscreen drawing surface, ideal for this purpose
- because the number of LEDs you're driving will usually be far below the number
- of pixels on even a small screen region. 
+ Requires a Pixelblaze Output Expander board, a compatible USB->Serial adapter and
+ a supported (by the Output Expander) addressable LED matrix.
+ 
+ NOTE: YOU WILL HAVE TO CONFIGURE THIS SKETCH FOR YOUR LED SETUP BEFORE RUNNING THIS
+ SKETCH. See setup() below for details. 
  
  9/20/21 JEM (ZRanger1)
 */
 import processing.serial.*;
 import pbxuniverse.*;
-
-// Expanderverse - use Pixelblaze Output Expand to drive addressable LEDs!
-// This example shows how to set up a matrix display.  It requires a 
 
 // Set the dimensions of your matrix here
 // NOTE: 'height' and 'width' are reserved words in Processing

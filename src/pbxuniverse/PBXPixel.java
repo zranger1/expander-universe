@@ -2,7 +2,10 @@ package pbxuniverse;
 
 import processing.core.*;
 
-//optimized for fast traversal, definitely not for memory size
+/**
+ * ExpanderVerse pixel data type. Holds color, coordinate mapping
+ * and hardware interface information for each pixel.
+ */
 public class PBXPixel {
 	protected int pixel;      // 4 byte RGBA color, ('A' byte not used at the moment)
 	protected int index;      // which pixel in a PImage of appropriate size corresponds to this LED.
@@ -20,7 +23,12 @@ public class PBXPixel {
 		this.nMap = new PVector();
 	}
 	
-	// All ExpanderVerse maps are effectively 3D
+	/**
+	 * Sets a pixel's world map coordinates.  In ExpanderVerse,
+	 * all maps are 3D.  If you're not using one or more coordinates,
+	 * just set them to zero.
+	 * @param v - world coordinate vector
+	 */
 	public void setMapCoordinates(PVector v) {
 		map.set(v);
 	}
@@ -29,6 +37,16 @@ public class PBXPixel {
 	   v.set(map);
 	}
 	
+	/**
+	 * Sets a pixel's normalized coordinates. Unless you're creating a
+	 * specialized normalization, it is not normally necessary to call this
+	 * method. The normalized coordinate map should be more-or-less automatically
+	 * maintained, or you can renormalize the entire display from the
+	 * ExpanderVerse object if you need to. <p>
+	 * In ExpanderVerse, all maps are 3D.  If you're not using one or more coordinates,
+	 * just set them to zero.
+	 * @param v - normalized coordinate vector
+	 */	
 	public void setNormalizedCoordinates(PVector v) {
 		nMap.set(v);
 	}	
@@ -37,17 +55,29 @@ public class PBXPixel {
 		v.set(nMap);
 	}
 	
-	// index tells which pixel in a PImage of appropriate size corresponds to this LED
+	/**
+	   The map index tells which pixel in a PImage of appropriate size corresponds to this LED
+	 * 
+	 * @param n
+	 */
 	public void setIndex(int n) {
 		index = n;
 	}
-	
+
+	/**
+	   The map index tells which pixel in a PImage of appropriate size corresponds to this LED
+	 * 
+	 */
 	public int getIndex() {
 		return index;
 	}
 	
-	// set rgb color of a pixel in the backing buffer. (Doesn't
-	// set the actual outgoing packet data 'till draw time.)
+	/**
+	   Sets rgb color of a pixel in the backing buffer. (Doesn't
+	   set the actual outgoing packet data 'till draw time.)
+	 * 
+	 * @param c - a Processing color() object
+	 */
 	public void setColor(int c) {
 		this.pixel = c;
 	}

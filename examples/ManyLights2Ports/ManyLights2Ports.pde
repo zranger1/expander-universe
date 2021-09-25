@@ -1,8 +1,17 @@
 import processing.serial.*;
 import pbxuniverse.*;
+/* 
+ Many Lights, Two Ports Example - displays a simple pattern on an display composed of
+ multiple strands/strips of different types attached to a two Pixelblaze Output Expander
+ boards, connected to two serial ports.  
+    
+ Requires at least two Pixelblaze Output Expander boards, compatible USB->Serial adapters and
+ supported (by the Output Expander) addressable LED strips or strands. 
+ 
+ NOTE: YOU WILL HAVE TO CONFIGURE THIS SKETCH FOR YOUR LED SETUP BEFORE RUNNING THIS
+ SKETCH. See setup() below for details.   
 
-// Use the ExpanderVerse library to send data to LED!
-// This example displays a simple pattern on several strands/strips
+*/
 
 ExpanderVerse leds;
 PBXSerial port1,port2;  // Create object from Serial class
@@ -14,12 +23,12 @@ int pixelCount;
 int frameCount = 0;
 
 // roughly equivalent to Pixelblaze time()
-float Sawtooth(float ms) {
+float sawtooth(float ms) {
   return  ((float) millis() % ms)/ ms;  
 }
 
 void setup() {
-  size(1000,1000);
+  size(640,480);
   
   // First create an ExpanderVerse object to manage this display
   leds = new ExpanderVerse(this);
@@ -29,8 +38,10 @@ void setup() {
   // just take the first one...
  
   // Open the serial port. If the port isn't available, or doesn't support
-  // the required datarate, openPort() will throw an exception
-
+  // the required datarate, openPort() will throw an exception.
+  //
+  // Use leds.listSerialPorts() to get a list of available ports on your machine
+  // My two USB->Serial converters are always on COM4 and COM5.
   port1 = leds.openPort("COM4");
   port2 = leds.openPort("COM5");
   
@@ -38,10 +49,10 @@ void setup() {
   b0 = leds.addOutputExpander(port1,0);
   b1 = leds.addOutputExpander(port2,0);
   
-  
-  // Add every LED we can find that's not currently attached to something...
-  // (we keep the handles around to test per-channel features.  You don't
-  // really have to keep them)
+  // This is every spare LED I had that wasn't attached to another project!
+  // Add, delete, modify according to your setup.
+  // We keep the channel handles around to test per-channel control features.
+  // You don't need them just to run patterns.
   ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
   ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
   ch3 = leds.addChannelWS2812(b0,2,200,"RGB"); 
@@ -54,33 +65,32 @@ void setup() {
   // will handle any required conversion.
   colorMode(HSB,1);
   
-  // I'm using this sketch as a test to see how many LEDs I can successfully run.
   // limit the brightness of our LEDs so we don't kill our power supply
   leds.setGlobalBrightness(0.3);
-  
   
   timer = millis();
   pixelCount = leds.getPixelCount();
   println("pixelCount = ",pixelCount);
 }
 
-float h1 = 0;
 void draw() {
   float h,b;
+  background(0);
 
-  // generate a couple of sawtooth waveforms at various frequencies
-  float t1 = Sawtooth(4000);  // to move band along display 
+  // generate a a waveform to move a colored band along our display
+  float t1 = sawtooth(2000);   
    
-  // set the hue of each pixel to a shade of cyan/blue/purple according to
-  // its position in the display, animated by our sawtooth wave 
-  for (int i = 0; i < pixelCount; i++) {
-    float pct = (float(i) / pixelCount);
-    h = (t1+pct) % 1;  
-    b = abs(t1 - pct); b = (b <= 0.061) ? 1-b : 0;
+  // set the hue of each pixel according to its position in the display,
+  // and animate it with our sawtooth wave 
+  for (PBXPixel p : leds.getPixelList()) {
+    PVector n = new PVector();
+    p.getNormalizedCoordinates(n);
     
-    leds.setPixel(i,color(h,1,b));
-//    leds.setPixel(i,color(h1,1,1));
-  }  
+    h = (t1+n.x) % 1;  
+    b = abs(t1 - n.x); b = (b <= 0.05) ? 1 : 0;    
+
+    p.setColor(color(h,1,b));
+  }
   
   // periodically display the frame rate in the Processing console 
   // Processing's frame rate is normally capped at 60fps, and 30 when it's
@@ -90,8 +100,7 @@ void draw() {
 
   frameCount++;  
   if (frameCount >= 100) {
-    h1 = (h1 + 0.618) % 1;
-    println(frameRate);
+//    println(frameRate);
     timer = millis();
     frameCount = 0;
   }

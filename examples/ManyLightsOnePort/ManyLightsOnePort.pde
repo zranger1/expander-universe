@@ -1,8 +1,18 @@
 import processing.serial.*;
 import pbxuniverse.*;
 
-// Use the ExpanderVerse library to send data to LED!
-// This example displays a simple pattern on several strands/strips
+/* 
+  Many Lights, One Port Example - displays a simple pattern on an display composed of
+  several strands/strips attached to a single Pixelblaze Output Expander board
+  on a single serial port.
+  
+ Requires a Pixelblaze Output Expander board, a compatible USB->Serial adapter and
+ one or more supported (by the Output Expander) addressable LED strips or strands.
+ 
+ NOTE: YOU WILL HAVE TO CONFIGURE THIS SKETCH FOR YOUR LED SETUP BEFORE RUNNING THIS
+ SKETCH. See setup() below for details.   
+
+*/
 
 ExpanderVerse leds;
 PBXSerial outPort;  // Create object from Serial class
@@ -14,7 +24,7 @@ int pixelCount;
 int frameCount = 0;
 
 void setup() {
-  size(1000,1000);
+  size(640,480);
   
   // First create an ExpanderVerse object to manage this display
   leds = new ExpanderVerse(this);
@@ -24,7 +34,6 @@ void setup() {
   // just take the first one...
   String portName = leds.listSerialPorts()[0];
 
-  
   // Open the serial port. If the port isn't available, or doesn't support
   // the required datarate, openPort() will throw an exception
   outPort = leds.openPort(portName);
@@ -33,6 +42,7 @@ void setup() {
   b0 = leds.addOutputExpander(outPort,0);
   
   // add three channels of 200 LEDs each to the expansion board we just created
+  // (tested w/3 strands of the "strange" brzlab fairy lights.)
   ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
   ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
   ch3 = leds.addChannelWS2812(b0,2,200,"RGB");   
@@ -41,8 +51,7 @@ void setup() {
   // will handle any required conversion.
   colorMode(HSB,1);
   
-  // I'm using this sketch as a test to see how many LEDs I can successfully run.
-  // limit the brightness of our LEDs so we don't kill our power supply
+  // Limit brightness of our LEDs so we don't kill our power supply
   leds.setGlobalBrightness(0.3);
   
   // You can also control brightness and gamma correction per channel. Gamma correction
@@ -58,20 +67,22 @@ void setup() {
   println("pixelCount = ",pixelCount);
 }
 
-
 void draw() {
-  
+  background(0);
   // generate a 4 second, 0-1 range sawtooth waveform
   float t1 = float (millis() % 4000)/ 4000;
    
   // set the hue of each pixel to a shade of cyan/blue/purple according to
   // its position in the display, animated by our sawtooth wave 
-  for (int i = 0; i < pixelCount; i++) {
-    float pct = (float(i) / pixelCount) + t1;
-    pct = 0.3 * (sin(TWO_PI * pct)*0.5);  // sine wave offset to add to hue
-    pct = 0.6667 + pct;  // 0.6667 is pure blue in HSB
+  for (PBXPixel p : leds.getPixelList()) {
+    PVector n = new PVector();
+    float hue;
+    p.getNormalizedCoordinates(n);
     
-    leds.setPixel(i,color(pct,1,1));
+    hue = 0.3 * (sin(TWO_PI * (n.x+t1))*0.5);  // sine wave offset to add to hue
+    hue = 0.6667 + hue;  // 0.6667 is pure blue in HSB
+
+    p.setColor(color(hue,1,1));
   }  
   
   // periodically display the frame rate in the Processing console 
