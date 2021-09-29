@@ -16,6 +16,8 @@ public class PBXDataChannel extends PBXChannel {
 	byte color_order;
 	int pixel_count; 
 	int frequency;
+	
+	_pixelSetter ps;
 
 	PBXBoard board;	  
 
@@ -29,15 +31,21 @@ public class PBXDataChannel extends PBXChannel {
 	
 	// per-channel color correction factors and tables to balance colors between strips of different
 	// correction values are floating point, in the range (0-1)
-	// TODO - not yet fully implemented.
-	float cfR = 0; 
-	float cfG = 0;
-	float cfB = 0;
+	// TODO - NEED TO BUILD THESE TABLES!!! not yet fully implemented.
+	float cfR = 1; 
+	float cfG = 1;
+	float cfB = 1;
 	byte[] rCorrect = new byte[256];
 	byte[] gCorrect = new byte[256];
 	byte[] bCorrect = new byte[256];	
 	
 	byte[] levelTable = new byte[256];		  
+	
+	// generic pixel setting interface. LED configuration to be
+	// set at channel creation time
+	protected interface _pixelSetter {
+		      void setPixel(int index, int c);
+	}	
 
 	PBXDataChannel(PBXBoard brd, byte ch_number,byte ch_type) {
 		super(brd.getSerialPort(),ch_number,ch_type);
@@ -57,12 +65,12 @@ public class PBXDataChannel extends PBXChannel {
 	}
 
 	// per pixel data offset (0-3) of each color in pixel data
-	public void setColorOrder(int r, int g, int b, int w) {
+	void setColorOrder(int r, int g, int b, int w) {
 		color_order = (byte) (r | (g << 2) | (b << 4) | (w << 6));  
 		outgoing[offs_color_order] = color_order;
 	}
 
-	public void setColorOrder(int r,int g,int b) {
+	void setColorOrder(int r,int g,int b) {
 		setColorOrder(r,g,b,0);
 	}   
 
@@ -75,7 +83,7 @@ public class PBXDataChannel extends PBXChannel {
 		return pixel_count;	  
 	}
 
-	public void setPixelCount(int n) {
+	void setPixelCount(int n) {
 		pixel_count = n;
 		packShort(offs_pixel_count,n);
 	}     
@@ -84,12 +92,12 @@ public class PBXDataChannel extends PBXChannel {
 	// packet buffer. This gives us a quick path for setting a whole
 	// channel's pixels in one shot with as few function calls and as
 	// little memory copying as we can manage.
-	public int getPixelBufferOffset() {
+	int getPixelBufferOffset() {
 		return header_size;
 	} 
 
 	// must be overridden by child classes
-	public void setPixel(int index,int c) {
+	void setPixel(int index,int c) {
 		//	    println("Bogus call to theoretically virtual object. Just.. no!");
 	}	    
 	
@@ -98,24 +106,28 @@ public class PBXDataChannel extends PBXChannel {
 	// over the shape of the curve and can actually be fairly accurate, depending on the
 	// value you choose and your LEDs.		
 	void buildColorTables()  {
-		// scale everything with global brightness
+		// everything (except white balance) scales with global brightness
+		// (and white balance probably should eventually as well...)
 		float bri = brightness * board.getGlobalBrightness(); 		
 		
 		for (int i = 0; i < levelTable.length;i++) {
 			
+            // precalculate white corrected values for R,G and B, so we can just look them
+			// up at pixel setting time.  This correction is first in the chain
+			// of color processing at commit() time, so it is done at the original
+			// pixel's brightness, before global brightness and gamma correction
+			// are applied.
+			rCorrect[i] = (byte) (i * cfR);
+			gCorrect[i] = (byte) (i * cfG);
+			bCorrect[i] = (byte) (i * cfB);
+			
 			// linear brightness value...
 			float val = ((float) i)/levelTable.length;
-			
+					
 			// calculate gamma corrected brightness
 			val = bri * (float) Math.pow(val,gammaCorrection);
-			levelTable[i] = (byte) Math.floor(val*255);
-			
-            // precalculate white corrected values for R,G and B, so we can just look them
-			// up at pixel setting time.
-			rCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfR)) * 255));
-			gCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfG)) * 255));
-			bCorrect[i] = (byte) Math.floor(Math.max(0,(val - (val * cfB)) * 255));			
-		}    				
+			levelTable[i] = (byte) Math.floor(val*255);		
+		}    	
 	}
 
     /**	
@@ -142,28 +154,42 @@ public class PBXDataChannel extends PBXChannel {
         buildColorTables();
 	}
 	
+	// Extended/Experimental pixel color refinement.  User specified color  
+	// will be white balanced and possibly extended to HDR if the 
+	// LEDs on the channel support it.  Correction tables must be
+	// built (with a call to buildColorTables()) before calling this function
+	// or nothing will be displayed.  But buildColorTables() should be called
+	// by all data channel constructors automatically.
+	//
+	// Takes an RGB color, returns the 'corrected' version of that color. 
+    public int correctColor(int c) {
+		int r,g,b;
+
+		// get white balanced values for each color component 
+		b = Byte.toUnsignedInt(bCorrect[c & 0xFF]);        // blue
+		g = Byte.toUnsignedInt(gCorrect[(c >> 8) & 0xFF]); // green
+		r = Byte.toUnsignedInt(rCorrect[(c >> 16) & 0xFF]);// red
+		
+		// build output color value
+		return b | (g << 8) | (r << 16);		
+	}
+	
+	
 	/**
-	 * Sets r,g and b color correction factors -- amount subtracted from full white
-	 * to produce the particular 'white' you want to match. Values should be in the
-	 * range (0..1)
-	 * <p>
-	 * TODO: Tables are built, but not yet implemented in pixel setting
-	 * methods. Need to think about linearity vs brightness a little more, plus
-	 * find a way to minimize the performance impact, since this has to be
-	 * done per color, per pixel at render time. <p>
-	 * Also, we'll need tools to help the user set this up.
+	 * Sets r,g and b color correction factors -- per color component "multipliers" in the 
+	 * range (0..1) that will be multplied with pixel colors to produce, at full brightness,
+	 * the particular 'white' you want to match.  
 	 */			
 	public void setColorCorrection(float r,float g, float b) {
-		//store correction factors,
-		//TODO - rebuild tables
-		cfR = r;
-		cfG = g;
-		cfB = b;
+		//validate and store correction factors, then rebuild tables		
+		
+		cfR = Math.min(1,Math.max(0,r));
+		cfG = Math.min(1,Math.max(0,g));
+		cfB = Math.min(1,Math.max(0,b));
 		buildColorTables();
 	}	
 
 	public float getGlobalBrightness() {
 		return board.getGlobalBrightness();
 	}		
-
 }  

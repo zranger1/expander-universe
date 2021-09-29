@@ -128,7 +128,7 @@ void setup() {
     
   // limit the maximum brightness to keep the power supply happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.
-  leds.setGlobalBrightness(0.75);
+  leds.setGlobalBrightness(0.5);
   leds.setGammaCorrection(4);
   
   // Use the setMatrixMap() helper function to create an mWidth * mHeight mapping for our

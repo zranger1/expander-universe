@@ -1,7 +1,6 @@
 package pbxuniverse;
 
 public class PBXChannelWS2812 extends PBXDataChannel {
-	_pixelSetter ps;
 
 	// full constructor -- all channel parameters
 	// TODO - we still don't really handle W, or the -W orders correctly
@@ -58,38 +57,30 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 	}
 
 	// bytes per pixel - for WS2812 channels only
-	public void setBytesPerPixel(byte n) {
+	void setBytesPerPixel(byte n) {
 		bytes_per_pixel = n;
 		outgoing[offs_bpp] = bytes_per_pixel;
 	}  
 	
 	// set pixel according to channel LED format
-	public void setPixel(int index,int c) {
+	void setPixel(int index,int c) {
 		ps.setPixel(index, c);
 	}
 	
-	// generic pixel setting interface. LED configuration to be
-	// set at channel creation time
-	public interface _pixelSetter {
-		      void setPixel(int index, int c);
-	}
-	
 	// 3-byte RGB setPixel for WS2812    
-	public class _RGBSetter implements _pixelSetter {
+	protected class _RGBSetter implements _pixelSetter {
 
 		public void setPixel(int index,int c) {
 			index = header_size + (index * bytes_per_pixel);
 			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
 			outgoing[index++] = levelTable[(c >> 8) & 0xFF];   // G;
 			outgoing[index++] = levelTable[c & 0xFF];          // B
-		}			
-		
+		}					
 	}
 	
-
 	// 4-byte RGB-W setPixel for WS2812    
 	// ignores white data, if any
-	public class _RGBxSetter implements _pixelSetter {
+	protected class _RGBxSetter implements _pixelSetter {
 		public void setPixel(int index,int c) {
 			index = header_size + (index * bytes_per_pixel);
 			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
@@ -100,7 +91,7 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 	}
 	
 	// 4-byte RGBW setPixel for WS2812 
-	public class _RGBWSetter implements _pixelSetter {
+	protected class _RGBWSetter implements _pixelSetter {
 		public void setPixel(int index,int c) {
 			c = RGBtoRGBW(c);
 			index = header_size + (index * bytes_per_pixel);
@@ -113,6 +104,8 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 
 	// do what the function name says.
 	// TODO -- long term how to make this faster still??!
+	// it looks a lot like W ends up being mostly the smallest component
+	// of RGB.
 	int RGBtoRGBW(int rgb) {
 		float w,briMax,briMin;
 		int tmp;
@@ -145,8 +138,5 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 
 		// and return 32 bits of color 
 		return rgbw;
-	} 	
-
-
-	
+	} 		
 }

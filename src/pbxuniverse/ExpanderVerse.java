@@ -36,21 +36,23 @@ import java.util.*;
 TODO - THE MASTER TODO LIST!
   - (MOSTLY DONE) PImage/PGraphics transfer
   - Disable/enable channels??      
-  - (PROBABLY NOTHING) what do we need to do to enable multithread/multicore pixel rendering?   Anything?
   - keep looking for ways to simplify and automate the display creation process
-  - write more damn examples! Fonts, shapes, noise, shaders...
+  - write more examples! Fonts, shapes, noise, shaders, color correction, text...
   - optimize getPixelCount() - it doesn't need to actually recheck unless config has changed  
   - add coordinate translate, scale, rotate
   - (MOSTLY DONE) how best to integrate the mapping functions?  When to autogen the normalized map
   - Power usage estimation and management
-  - allow addChannel() to use board index as well as board object pointer
-  - add per channel color correction
+  - FINISH COLOR CORRECTION!!!!!!
   - document new gamma behavior and change in all examples
+  - default HDR color on for APAs, but allow user to set.
   - document default image index behavior
+  - should we autonumber boards when adding them to a port?    
  */	        
 
 /**
- * Expander Universe - ExpanderVerse Object:
+ * Control addressable LED displays from your
+ * computer.  Requires a compatible USB to Serial adapter, and one
+ * or more the Pixelblaze Output Expander boards.
 <p>
  To build a display:
  <p>
@@ -122,6 +124,51 @@ public class ExpanderVerse {
 		ports.add(p);
 		return p;
 	}
+	
+	/**
+	 * Given the name of a serial port ("COM5", "/dev/ttyUSBsomething"), returns
+	 * the port object associated with that name if it exists. The port names should
+	 * match exactly, except for case, which is ignored. Return null if the specified 
+	 * port is not found.
+	 * @param portName
+	 * @return Serial port object
+	 */
+	public PBXSerial getPort(String portName) {
+		PBXSerial prt = null;
+		for (PBXSerial p : ports) {
+			if (portName.equalsIgnoreCase(p.getPortName())) {
+			   prt = p;
+			   break;
+			}
+		}
+	    return prt;			
+	}
+	
+	/**
+	 * Gets the list of open serial port objects. The list
+	 * may be empty.
+	 * @return port list
+	 */
+	public LinkedList<PBXSerial> getPortList() {
+		return ports;
+	}
+	
+	/**
+	 * Given the "index" of an open serial port returns the associated port object. 
+	 * ExpanderVerse stores open ports in the order they are opened, so the first port
+	 * opened will be at index 0, the second at index 1, and so on.  <p>
+	 * Returns null if the specified port is not found.
+	 * @param portName
+	 * @return Serial port object
+	 */
+	public PBXSerial getPort(int n) {
+	
+        // make sure the index is in the range of valid
+		// open ports
+	    if ((n < 0) || (ports.size() <= n)) return null;
+	    
+	    return ports.get(n);
+	}	
 
 	/**
 	 * Create a new board, attach it to the specified port and return the object.  Board 
@@ -179,7 +226,7 @@ public class ExpanderVerse {
 		createPixelBlock(ch,pixelCount);		
 		return ch;
 	}
-
+	
 	/**
 	 * Create clock channel for APA102/Dotstar LEDs <p>
 	 * If you use APA102s, you will need to dedicate one channel on the output expander to
@@ -190,11 +237,78 @@ public class ExpanderVerse {
 	 * @param frequency desired output clock frequency (in hz) for this channel, e.g 2000000, 800000
 	 * @return channel object
 	 */
-
 	public PBXDataChannel addChannelAPAClock(PBXBoard board,int chNumber,int frequency) {     
 		PBXDataChannel ch = board.addChannelAPAClock((byte) chNumber,frequency);
 		return ch;
 	}
+	
+	/**
+	   Creates a new channel of specified type and adds it to a board 
+	 * 
+	 * @param board previously created board object
+	 * @param type channel type/protocol - WS2812, APA102, or APACLOCK
+	 * @param chNumber channel number (on board) to create
+	 * @param pixelCount number of pixels attached to this channel
+	 * @param frequency desired output clock frequency (in hz) for this channel, e.g 2000000, 800000
+	 * @param colorString string describing color order, e.g "RGB", "GRBW"
+	 * @return channel object
+	 */	
+	public PBXDataChannel addChannel(PBXBoard board,ChannelType type, int chNumber,int pixelCount, int frequency,String colorString) {
+		PBXDataChannel ch = null;
+		switch (type) {
+		case WS2812:
+			ch =  addChannelWS2812(board,chNumber,pixelCount,colorString); 
+			break;
+		case APA102:
+			ch =  addChannelAPA102(board,chNumber,pixelCount,frequency,colorString);			
+			break;
+		case APACLOCK:
+			ch = addChannelAPAClock(board,chNumber,frequency);
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid channel type specified.");
+		}		
+		
+		return ch;
+	}	
+	
+	/**
+	   Creates a new channel of specified type and adds it to a board. (If an APA102
+	   or APACLOCK channel is created using this method, it's clock frequency will 
+	   default to 2000000bps. 
+	 * 
+	 * @param board previously created board object
+	 * @param type channel type/protocol - WS2812, APA102, or APACLOCK
+	 * @param chNumber channel number (on board) to create
+	 * @param pixelCount number of pixels attached to this channel
+	 * @param colorString string describing color order, e.g "RGB", "GRBW"
+	 * @return channel object
+	 */	
+	public PBXDataChannel addChannel(PBXBoard board,ChannelType type, int chNumber,int pixelCount,String colorString) {
+		return addChannel(board,type,chNumber,pixelCount,2000000,colorString);
+	}		
+
+	/**
+	 * Returns the board object specified by id on the serial port
+	 * port.
+	 * @param port - serial port object
+	 * @param id - board id number to retrieve
+	 * @return PBXBoard object if found, null otherwise
+	 */
+	public PBXBoard getBoard(PBXSerial port,int id) {				
+		return port.getBoard(id);
+	}
+		
+	/**
+	 * Gets the channel object specified by id on board brd
+	 * @param brd - board to query for channel 
+	 * @param id - number of channel to retrieve
+	 * @return PBXDataChannel object if found, null otherwise
+	 */	
+	public PBXDataChannel getChannel(PBXBoard brd, int id) {
+		return brd.getChannel(id);		
+	}
+	
 
 	// create block of internal pixel objects for a newly addded channel. 
 	// The mapping and image index values are set sequentially for new pixels
@@ -296,8 +410,25 @@ public class ExpanderVerse {
 	 * Sets all pixels associated with this ExpanderVerse object to
 	 * black (off)
 	 */	
-	public void clear() {
+	public void clearPixels() {
 		setAllPixels(0);
+	}
+	
+	/**
+	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
+	 * DrawMode can be changed at any time.
+	 * <p>TODO - EHNANCED MODE NOT YET IMPLEMENTED.  Draw mode is set to FAST 
+	 */
+	public void setDrawMode(DrawMode dm) {
+		switch (dm) {
+		case FAST:
+			break;
+		case ENHANCED:
+			break;
+		default:
+			throw new IllegalArgumentException("Invalid drawing mode type specified.");
+		}		
 	}
 
 	/**  
@@ -329,28 +460,6 @@ public class ExpanderVerse {
 		// so send time is negligible.
 		for (PBXSerial p : ports) { p.sendDrawAll(); }
 	}  	
-
-	/**  
-	 * Render all pixels to the LEDs on all ports, adapters and channels.  
-	 * Same as draw(), except drawEx() performs color correction and if necessary,
-	 * remaps Processing's 24 bit color to HDR if supported by the connected LEDs.
-	 * <p>
-	 * There is a small performance penalty for the extra computation, and the visible
-	 * difference is minimal in the most common display configurations, so choice of drawEx() vs draw()
-	 * is left to the user.
-	 */
-	public void drawEx() {
-
-		// commit backing buffer to the outgoing serial packets, using the enhanced,
-		// color corrected pixel value generator (commitEx)
-		for (PBXPixel pix : pixels) { pix.commitEx(); }
-		for (PBXSerial p : ports) { p.sendPixelData(); }
-		for (PBXSerial p : ports) { p.sendDrawAll(); }
-	}  	
-
-
-
-
 
 	//////////////////////////////////////////////////////////////////////////////// 
 	// Coordinate mapping and related functions

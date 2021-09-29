@@ -3,7 +3,7 @@ package pbxuniverse;
 //Command packet - DRAW_ALL. Render all pixels that have been
 //sent to channels on this port.  You only need one of these per port regardless
 //of how many boards or channels it has.
-public class PBXDrawAll extends PBXChannel {
+class PBXDrawAll extends PBXChannel {
 	static final int header_size = 6;  
 
 	PBXDrawAll(PBXSerial port) {

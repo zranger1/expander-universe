@@ -82,39 +82,15 @@ public class PBXPixel {
 		this.pixel = c;
 	}
 	
-	// Extended/Experimental pixel color refinement.  User specified color  
-	// will be white balanced and possibly extended to HDR if the 
-	// LEDs on the channel support it.
-	public int correctPixelColor(int c) {
-		int r,g,b;
-		
-		// get white balanced values for each color component 
-		b = channel.bCorrect[c & 0xFF];        // blue
-		g = channel.gCorrect[(c >> 8) & 0xFF]; // green
-		r = channel.rCorrect[(c >> 16) & 0xFF];// red
-		
-		// TODO - expand to HDR color if supported...
-
-		// build output color value
-		return b & (g << 8) * (r << 16);		
-	}
-
 	// get pixel color from the backing buffer
 	public int getColor() {
 		return this.pixel;
 	}
 
-	public void commit() {
-		// eventually, this should be
-		//channel.setPixel(dataOffset,correctPixelColor(pixel));		
-		
+	// "simple" commit function - just transfers RGB pixels to the channel
+	// output buffers so it can be transmitted.
+	void commit() {
 		channel.setPixel(dataOffset,pixel);
-	}
-	
-	// write pixels with white balanced, possibly HDR enhanced color
-	// called by ExpanderVerse.drawEx();
-	public void commitEx() {
-		channel.setPixel(dataOffset,correctPixelColor(pixel));			
 	}
 
 }

@@ -51,10 +51,38 @@ public class PBXBoard {
 		return ch;
 	}
 	
-	public void addChannel(PBXDataChannel ch) {
+	// add channel to this board's channel list
+	void addChannel(PBXDataChannel ch) {
 		channels.add(ch);
 	}
 	
+	/**
+	 * Gets the channel object specified by id 
+	 * @param id - number of channel to retrieve
+	 * @return PBXDataChannel object if found, null otherwise
+	 */	
+	public PBXDataChannel getChannel(int id) {
+		PBXDataChannel result = null;
+		
+		for (PBXDataChannel ch : channels) {
+			if (ch.getChannelNumber() == id) {
+				result = ch;
+				break;				
+			};
+		}  			
+		
+		return result;
+	}
+	
+	/**
+	 * Gets the list of channels associated with this board. The list
+	 * may be empty.
+	 * @return channel list
+	 */
+	public LinkedList<PBXDataChannel> getChannelList() {
+		return channels;
+	}
+		
 	public float getGlobalBrightness() {
 	  return port.parent.getGlobalBrightness();
 	}
@@ -86,7 +114,7 @@ public class PBXBoard {
 	}
 	
 	// transmit all active channels to the expansion board.
-	public void send() {
+	void send() {
 		for (PBXChannel ch : channels) {
 			ch.send();
 		}    

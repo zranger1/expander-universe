@@ -17,7 +17,7 @@ public class PBXChannelAPAClock extends PBXDataChannel {
 	} 
 
 	// output clock frequency - for APA channels only 
-	public void setChannelFrequency(int f) {
+	void setChannelFrequency(int f) {
 		frequency = f;
 		packInt(offs_frequency,f);
 	}  

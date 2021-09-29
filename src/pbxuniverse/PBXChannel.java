@@ -39,7 +39,7 @@ public class PBXChannel {
 
 	// create packet-type specific output buffer and initialize the invariant portion
 	// of the outgoing packet.
-	public void initOutputBuffer(int bufferSize) {
+	void initOutputBuffer(int bufferSize) {
 		outgoing = new byte[bufferSize+CRC_SIZE];
 		crc_offset = bufferSize;
 
@@ -54,13 +54,13 @@ public class PBXChannel {
 
 	// Utility - pack 16 bit value into output buffer at the specified
 	// index. 
-	public void packShort(int index,int val) {
+	void packShort(int index,int val) {
 		outgoing[index++] = (byte) (val & 0xFF); val = val >> 8;
 		outgoing[index] = (byte) (val & 0xFF);
 	}
 
 	// Utility - pack 32 bit value into output buffer at specified index
-	public void packInt(int index,int val) {
+	void packInt(int index,int val) {
 		outgoing[index++] = (byte) (val & 0xFF); val = val >> 8;
 		outgoing[index++] = (byte) (val & 0xFF); val = val >> 8;
 		outgoing[index++] = (byte) (val & 0xFF); val = val >> 8;    
@@ -68,28 +68,28 @@ public class PBXChannel {
 	}
 
 	// calculate CRC value for a filled output buffer
-	public long calc_crc() {
+	long calc_crc() {
 		crc.reset();
 		crc.update(outgoing,0,outgoing.length - CRC_SIZE);
 		return crc.getValue() & 0xFFFFFFFF;    
 	}  
 
 	// Send channel packet over the wire, followed by its CRC value
-	public void send() {
+	void send() {
 		packInt(crc_offset,(int) calc_crc());
 		outPort.write(outgoing);
 	}  
 
 	// Utility - helper for PBXBoard aggregator class
 	// returns composite board id/channel number as int
-	public int getChannelNumber() {
+	int getChannelNumber() {
 		return Byte.toUnsignedInt(channel_number);
 	}
 
 	// given a color initial "R","G","B","W", and a string specifying
 	// the order of colors for an LED channel, return the index of the
 	// target color in the string.
-	public int parseColorString(String target, String cs) throws IllegalArgumentException {
+	int parseColorString(String target, String cs) throws IllegalArgumentException {
 		int result;
 
 		// abort if too long or too short

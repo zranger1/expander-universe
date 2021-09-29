@@ -35,7 +35,7 @@ public class PBXSerial extends Serial {
 		pThread.start();
 	}    
 	
-	public PApplet getApplet() {
+	PApplet getApplet() {
 		return parent.pApp;
 	}
 
@@ -60,10 +60,37 @@ public class PBXSerial extends Serial {
 	/**
        Internal - add an expander board to the port's linked list.
 	 */	
-	public void addBoard(PBXBoard b) {
+	void addBoard(PBXBoard b) {
 		boards.add(b);
 	}
 	
+	/**
+	 * Gets the board object specified by id 
+	 * @param id - board id number to retrieve
+	 * @return PBXBoard object if found, null otherwise
+	 */
+	public PBXBoard getBoard(int id) {
+		PBXBoard brd = null;
+		
+		for (PBXBoard b : boards) { 
+			if (b.getBoardId() == id) {
+				brd = b;
+				break;
+			}
+		}
+		
+		return brd;
+	}	
+	
+	/**
+	 * Gets the list of output expander boards associated with this port. The list
+	 * may be empty.
+	 * @return board list
+	 */
+	public LinkedList<PBXBoard> getChannelList() {
+		return boards;
+	}	
+		
 	/**
 	 * Sets gamma correction factor (power curve exponenent) for this port and and all
 	 * boards and channels connected to it.
@@ -94,7 +121,7 @@ public class PBXSerial extends Serial {
 		return n;
 	}	
 
-	public void requestSerialIO(int cmd) {
+	void requestSerialIO(int cmd) {
 		// This busy wait is a couple of fps faster than the more "correct" locking
 		// version. If the serial comms thread is busy, spin while waiting for it to finish
 		// before issuing the next command.
@@ -104,11 +131,11 @@ public class PBXSerial extends Serial {
 		writeCommand.set(cmd);;
 	}
 		
-	public void sendPixelData() {
+	void sendPixelData() {
         requestSerialIO(CMD_SEND_DATA);
 	}
 	
-	public void sendDrawAll() {
+	void sendDrawAll() {
 		requestSerialIO(CMD_DRAW_ALL);
 	}
 
