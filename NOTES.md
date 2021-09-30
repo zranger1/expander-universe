@@ -1,6 +1,13 @@
 ## NOTES
 This is a power tool. Coding is required. It is not meant for absolute beginners. To use it successfully, you have to be comfortable with at least a little Processing programming, and know enough about electricity to wire all your lights together without setting things on fire.  
 
+#### What's New
+b0.2.0 adds
+- extended dynamic range for APA102-class LEDs.
+- per channel color correction API - lets you (at least try to) match whites across multiple
+LED types. 
+
+
 ### Wiring
 
 I have my computer->LED system conficured up as described below.  I have chosen to power the Output Expander from the USB port.  If you do this,

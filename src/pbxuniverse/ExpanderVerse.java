@@ -34,7 +34,6 @@ import java.util.*;
 
 /*
 TODO - THE MASTER TODO LIST!
-  - (MOSTLY DONE) PImage/PGraphics transfer
   - Disable/enable channels??      
   - keep looking for ways to simplify and automate the display creation process
   - write more examples! Fonts, shapes, noise, shaders, color correction, text...
@@ -43,7 +42,6 @@ TODO - THE MASTER TODO LIST!
   - (MOSTLY DONE) how best to integrate the mapping functions?  When to autogen the normalized map
   - Power usage estimation and management
   - FINISH COLOR CORRECTION!!!!!!
-  - document new gamma behavior and change in all examples
   - default HDR color on for APAs, but allow user to set.
   - document default image index behavior
   - should we autonumber boards when adding them to a port?    
@@ -60,12 +58,16 @@ TODO - THE MASTER TODO LIST!
  <li>open your serial ports with OpenPort <p>
  <li>use AddOutputExpander(PBXSerial) to add output expanders to the serial ports
  <li>use the appropriate AddChannel(PBXBoard) variant to add output channels.
-
+ 
+<p>
+ Pixel order is determined by the order in which you add Output Expander boards
+ and channels. As you create channels, ExpanderVerse maintains a default 1D (x,0,0) mapping
+ so for 1D strip setups, you can use the map for rendering without any further work.
+ If you have a more complex layout, you can set a custom (x,y,z) mapping after all
+ channels have been added. 
  <p>
- Pixel index, order and offsets will be determined by the order in which you 
- add the boards.  You can add x,y,z mapping after all the channels are created.
-
- <li>use the SetPixel-ish functions to set your LEDs
+ To draw to your LEDs:<p>
+ <li>use the SetPixel(i,color) or pixels[i].setColor(color) functions to set your LEDs
  <li>call Expanderverse.draw() to render all the pixels when set.    
  */
 public class ExpanderVerse {
@@ -124,7 +126,7 @@ public class ExpanderVerse {
 		ports.add(p);
 		return p;
 	}
-	
+
 	/**
 	 * Given the name of a serial port ("COM5", "/dev/ttyUSBsomething"), returns
 	 * the port object associated with that name if it exists. The port names should
@@ -137,13 +139,13 @@ public class ExpanderVerse {
 		PBXSerial prt = null;
 		for (PBXSerial p : ports) {
 			if (portName.equalsIgnoreCase(p.getPortName())) {
-			   prt = p;
-			   break;
+				prt = p;
+				break;
 			}
 		}
-	    return prt;			
+		return prt;			
 	}
-	
+
 	/**
 	 * Gets the list of open serial port objects. The list
 	 * may be empty.
@@ -152,7 +154,7 @@ public class ExpanderVerse {
 	public LinkedList<PBXSerial> getPortList() {
 		return ports;
 	}
-	
+
 	/**
 	 * Given the "index" of an open serial port returns the associated port object. 
 	 * ExpanderVerse stores open ports in the order they are opened, so the first port
@@ -162,12 +164,12 @@ public class ExpanderVerse {
 	 * @return Serial port object
 	 */
 	public PBXSerial getPort(int n) {
-	
-        // make sure the index is in the range of valid
+
+		// make sure the index is in the range of valid
 		// open ports
-	    if ((n < 0) || (ports.size() <= n)) return null;
-	    
-	    return ports.get(n);
+		if ((n < 0) || (ports.size() <= n)) return null;
+
+		return ports.get(n);
 	}	
 
 	/**
@@ -226,7 +228,7 @@ public class ExpanderVerse {
 		createPixelBlock(ch,pixelCount);		
 		return ch;
 	}
-	
+
 	/**
 	 * Create clock channel for APA102/Dotstar LEDs <p>
 	 * If you use APA102s, you will need to dedicate one channel on the output expander to
@@ -241,9 +243,9 @@ public class ExpanderVerse {
 		PBXDataChannel ch = board.addChannelAPAClock((byte) chNumber,frequency);
 		return ch;
 	}
-	
+
 	/**
-	   Creates a new channel of specified type and adds it to a board 
+	   Helper function for channel creation: Creates a new channel of specified type and adds it to a board 
 	 * 
 	 * @param board previously created board object
 	 * @param type channel type/protocol - WS2812, APA102, or APACLOCK
@@ -268,11 +270,12 @@ public class ExpanderVerse {
 		default:
 			throw new IllegalArgumentException("Invalid channel type specified.");
 		}		
-		
+
 		return ch;
 	}	
-	
+
 	/**
+	   Helper function for channel creation. 
 	   Creates a new channel of specified type and adds it to a board. (If an APA102
 	   or APACLOCK channel is created using this method, it's clock frequency will 
 	   default to 2000000bps. 
@@ -286,6 +289,35 @@ public class ExpanderVerse {
 	 */	
 	public PBXDataChannel addChannel(PBXBoard board,ChannelType type, int chNumber,int pixelCount,String colorString) {
 		return addChannel(board,type,chNumber,pixelCount,2000000,colorString);
+	}	
+	
+	/**
+	 * Helper function for channel creation: 
+	   Creates a new channel of specified type and adds it to a board. This prototype, which
+	   doesn't include pixelCount, is aimed at creating APA102 clock channels.
+	 * 
+	 * @param board previously created board object
+	 * @param type channel type/protocol - WS2812, APA102, or APACLOCK
+	 * @param chNumber channel number (on board) to create
+	 * @param Frequency - clock frequency
+	 * @return channel object
+	 */	
+	public PBXDataChannel addChannel(PBXBoard board,ChannelType type, int chNumber,int Frequency) {
+		return addChannel(board,type,chNumber,1,Frequency,"RGB");
+	}	
+	
+	/**
+	   Helper function for channel creation. Creates a new channel of specified type
+	   and adds it to a board. This 'helper' prototype is aimed at quick creation of
+	   APA102 Clock channels.  Frequency will default to 2000000 bits/sec.
+	 * 
+	 * @param board previously created board object
+	 * @param type channel type/protocol - WS2812, APA102, or APACLOCK
+	 * @param chNumber channel number (on board) to create
+	 * @return channel object
+	 */	
+	public PBXDataChannel addChannel(PBXBoard board,ChannelType type, int chNumber) {
+		return addChannel(board,type,chNumber,1,2000000,"RGB");
 	}		
 
 	/**
@@ -298,7 +330,7 @@ public class ExpanderVerse {
 	public PBXBoard getBoard(PBXSerial port,int id) {				
 		return port.getBoard(id);
 	}
-		
+
 	/**
 	 * Gets the channel object specified by id on board brd
 	 * @param brd - board to query for channel 
@@ -308,7 +340,7 @@ public class ExpanderVerse {
 	public PBXDataChannel getChannel(PBXBoard brd, int id) {
 		return brd.getChannel(id);		
 	}
-	
+
 
 	// create block of internal pixel objects for a newly addded channel. 
 	// The mapping and image index values are set sequentially for new pixels
@@ -354,7 +386,8 @@ public class ExpanderVerse {
 	}
 
 	/**
-	 * Sets brightness for all ports, boards and channels.
+	 * Sets brightness for all ports, boards and channels.  Settings made at the global
+	 * level will overwrite previous settings for individual ports boards and channels.
 	 *   
 	 * @param b global brightness level (0..1)
 	 */
@@ -372,13 +405,32 @@ public class ExpanderVerse {
 
 	/**
 	 * Sets gamma correction factor (power curve exponenent) for all ports, boards and channels.
-	 *   
+	 * Settings made at the global level will overwrite previous settings for individual ports boards and channels.   
 	 * @param b global gamma factor (0..1)
 	 */
 	public void setGammaCorrection(float g) {
 		gammaCorrection = Math.max(0,g);
 		for (PBXSerial p : ports) { p.setGammaCorrection(g); }			
 	}
+
+	/**
+	 * Sets r,g and b color correction factors - values in the range 0..1 that will be multiplied
+	 * with pixel colors to produce the particular 'white' you want to match. Settings made at the 
+	 * global level will overwrite previous settings for individual ports boards and channels.    
+	 */			
+	public void setColorCorrection(float r,float g, float b) {
+		for (PBXSerial p : ports) { p.setColorCorrection(r,g,b); }  
+	}		
+
+	/**
+	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
+	 * DrawMode can be changed at any time.
+	 * Settings made at this level will override previous settings for all ports, boards and channels.  
+	 */	
+	public void setDrawMode(DrawMode dm) {
+		for (PBXSerial p : ports) { p.setDrawMode(dm); }  		
+	}		
 
 	/**
 	 * Sets the pixel at the specified index to a color.
@@ -413,31 +465,9 @@ public class ExpanderVerse {
 	public void clearPixels() {
 		setAllPixels(0);
 	}
-	
-	/**
-	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
-	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
-	 * DrawMode can be changed at any time.
-	 * <p>TODO - EHNANCED MODE NOT YET IMPLEMENTED.  Draw mode is set to FAST 
-	 */
-	public void setDrawMode(DrawMode dm) {
-		switch (dm) {
-		case FAST:
-			break;
-		case ENHANCED:
-			break;
-		default:
-			throw new IllegalArgumentException("Invalid drawing mode type specified.");
-		}		
-	}
 
 	/**  
 	 * Render all pixels to the LEDs on all ports, adapters and channels.
-	 * <p>
-	 * This is the default drawing method, and is appropriate for most situations.  If you
-	 * need color correction (white balancing between different LED types on different
-	 * channels) or HDR color (more dynamic range from some APA102-like LEDs, nasty 
-	 * flickering from others), use drawEx() instead.
 	 */
 	public void draw() {
 
@@ -638,20 +668,20 @@ public class ExpanderVerse {
 
 		for (int i = 0; i < json.size(); i++) {
 			JSONArray mapEntry = json.getJSONArray(i);
-			
+
 			float [] coords = mapEntry.getFloatArray();
-			
-            m.set(coords[0],coords[1],(coords.length == 3) ? coords[2] : 0);
-            m.mult(scale);
-            setMapCoordinates(index,m);
-            index++;
+
+			m.set(coords[0],coords[1],(coords.length == 3) ? coords[2] : 0);
+			m.mult(scale);
+			setMapCoordinates(index,m);
+			index++;
 		}
 		buildNormalizedMap();
 	}
 
-  /* BEGIN ExportPixelblazeMap block
-   * TODO - We'll want a saveMap method at some point.  Here's the implementation from
-   * pixelTeleporter to use as a guide	
+	/* BEGIN ExportPixelblazeMap block
+	 * TODO - We'll want a saveMap method at some point.  Here's the implementation from
+	 * pixelTeleporter to use as a guide	
 
  // comparator for sorting.  Used by exportPixeblazeMap()
 	class compareLEDIndex implements Comparator<ScreenLED> {

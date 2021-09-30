@@ -93,7 +93,8 @@ public class PBXSerial extends Serial {
 		
 	/**
 	 * Sets gamma correction factor (power curve exponenent) for this port and and all
-	 * boards and channels connected to it.
+	 * boards and channels connected to it. Settings made at the port level will override
+	 * previous settings for attached boards and channels. 
 	 *   
 	 * @param g global gamma factor (0..1)
 	 */	
@@ -102,14 +103,35 @@ public class PBXSerial extends Serial {
 	}
 	
     /**	
-	  Sets brightness for this port and all boards and channels connnected to it.
-	 * 
+	 * Sets brightness for this port and all boards and channels connnected to it.
+	 * Settings made at the port level will override previous settings for attached
+	 * boards and channels. 
 	 * @param b (0..1) brightness
 	 */	
 	public void setBrightness(float bri) {
 		for (PBXBoard b : boards) { b.setBrightness(bri); }			
 	}
-		
+	
+	/**
+	 * Sets r,g and b color correction factors - values in the range 0..1 that will be multiplied
+	 * with pixel colors to produce the particular 'white' you want to match.
+	 * Settings made at the port level will override previous settings for all attached boards and
+	 * channels.  
+	 */			
+	public void setColorCorrection(float r,float g, float b) {
+		for (PBXBoard brd : boards) { brd.setColorCorrection(r,g,b); }  
+	}	
+	
+	/**
+	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
+	 * DrawMode can be changed at any time.
+	 * Settings made at the port level will override previous settings for attached boards and channels.  
+	 */	
+	public void setDrawMode(DrawMode dm) {
+		for (PBXBoard brd : boards) { brd.setDrawMode(dm); }  		
+	}	
+				
 	/**
 	 *  Returns total number of pixels attached to this output expander board
 	 * 

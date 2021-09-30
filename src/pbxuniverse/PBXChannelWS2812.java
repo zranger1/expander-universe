@@ -1,6 +1,8 @@
 package pbxuniverse;
 
+
 public class PBXChannelWS2812 extends PBXDataChannel {
+	boolean isRGBW;
 
 	// full constructor -- all channel parameters
 	// TODO - we still don't really handle W, or the -W orders correctly
@@ -16,6 +18,7 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 		// decode color string to get color order and bytes per pixel  
 		int r,g,b,w;
 		byte bpp = 3;
+		isRGBW = false;
 
 		// figure out how many bytes per pixel. 4 if there's a white or -white channel, 3 otherwise
 	
@@ -27,17 +30,16 @@ public class PBXChannelWS2812 extends PBXDataChannel {
             // check for a -W (white disabled) configuration
 			w = parseColorString("-W",colorString);
 			if (w >= 0) {
-				ps = new _RGBxSetter();
+				isRGBW = false;
 			}
 			// if not, then we're a regular RGBW channel
 			else {
-				ps = new _RGBWSetter();
+				isRGBW = true;
 			}					
 		}
 		// if no white channel, we're a 3 byte per pixel RGB channel.
 		else {
 			bpp = 3;
-			ps = new _RGBSetter();
 		}
 		
 		r = parseColorString("R",colorString);
@@ -49,6 +51,7 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 		setBytesPerPixel(bpp);
 		setColorOrder(r,g,b,w);
 		setPixelCount(pixelCount);
+		setDrawMode(DrawMode.FAST);
 	}
 
 	// 3 channels, RGB color order.  
@@ -61,6 +64,46 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 		bytes_per_pixel = n;
 		outgoing[offs_bpp] = bytes_per_pixel;
 	}  
+	
+	// Internal - sets DrawMode.FAST renderers as needed for 
+	// pixel depth and configuration
+	void setFastDrawMode() {
+		if (bytes_per_pixel == 4) {
+		  ps = (isRGBW == true) ?  new _RGBWSetter() : new _RGBxSetter();
+		}
+		else {
+		  ps = new _RGBSetter();			
+		}				
+	}
+	
+	// Internal - sets DrawMode.ENHANCED renderers as needed for 
+	// pixel depth and configuration.
+	void setEnhancedDrawMode() {
+		if (bytes_per_pixel == 4) {
+			  ps = (isRGBW == true) ?  new _ERGBWSetter() : new _ERGBxSetter();
+		}
+		else {
+			ps = new _ERGBSetter();	
+		}
+	}			
+	
+	/**
+	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
+	 * DrawMode can be changed at any time.
+	 */
+	public void setDrawMode(DrawMode dm) {
+		super.setDrawMode(dm);
+	
+		switch (dm) {
+		case FAST:
+			setFastDrawMode();
+			break;
+		case ENHANCED:
+			setEnhancedDrawMode();
+			break;
+		}
+	}	
 	
 	// set pixel according to channel LED format
 	void setPixel(int index,int c) {
@@ -101,6 +144,44 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 			outgoing[index] = levelTable[(c >> 24) & 0xFF];    // W
 		}	
 	}
+	
+	// 3-byte enhanced RGB setPixel for WS2812    
+	protected class _ERGBSetter implements _pixelSetter {
+
+		public void setPixel(int index,int c) {
+			index = header_size + (index * bytes_per_pixel);
+			c = correctColor(c);            
+			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
+			outgoing[index++] = levelTable[(c >> 8) & 0xFF];   // G;
+			outgoing[index++] = levelTable[c & 0xFF];          // B
+		}					
+	}
+	
+	// 4-byte enhanced RGB-W setPixel for WS2812    
+	// ignores white data, if any
+	protected class _ERGBxSetter implements _pixelSetter {
+		public void setPixel(int index,int c) {
+			index = header_size + (index * bytes_per_pixel);
+			c = correctColor(c);            
+			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
+			outgoing[index++] = levelTable[(c >> 8) & 0xFF];   // G;
+			outgoing[index++] = levelTable[c & 0xFF];          // B
+			outgoing[index] = (byte) 0;   // no white
+		}
+	}
+	
+	// 4-byte enhanced RGBW setPixel for WS2812 
+	protected class _ERGBWSetter implements _pixelSetter {
+		public void setPixel(int index,int c) {
+			c = correctColor(c);        
+			c = RGBtoRGBW(c);
+			index = header_size + (index * bytes_per_pixel);
+			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
+			outgoing[index++] = levelTable[(c >> 8) & 0xFF];   // G;
+			outgoing[index++] = levelTable[c & 0xFF];          // B
+			outgoing[index] = levelTable[(c >> 24) & 0xFF];    // W
+		}	
+	}	
 
 	// do what the function name says.
 	// TODO -- long term how to make this faster still??!

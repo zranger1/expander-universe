@@ -17,6 +17,7 @@ public class PBXDataChannel extends PBXChannel {
 	int pixel_count; 
 	int frequency;
 	
+	DrawMode drawMode;
 	_pixelSetter ps;
 
 	PBXBoard board;	  
@@ -31,7 +32,6 @@ public class PBXDataChannel extends PBXChannel {
 	
 	// per-channel color correction factors and tables to balance colors between strips of different
 	// correction values are floating point, in the range (0-1)
-	// TODO - NEED TO BUILD THESE TABLES!!! not yet fully implemented.
 	float cfR = 1; 
 	float cfG = 1;
 	float cfB = 1;
@@ -59,6 +59,8 @@ public class PBXDataChannel extends PBXChannel {
 		color_order = 0;
 		pixel_count = 0;
 		frequency = 0;
+		
+		setDrawMode(DrawMode.FAST);
 
 		// Default channel brightness will be (globalBrightness * 1); 
 		setBrightness(1);  // default channel output will be globalBrightness * 1;
@@ -88,7 +90,7 @@ public class PBXDataChannel extends PBXChannel {
 		packShort(offs_pixel_count,n);
 	}     
 
-	// Utility - Returns the offset of the 0th pixel in the channel's
+	// Internal - Returns the offset of the 0th pixel in the channel's
 	// packet buffer. This gives us a quick path for setting a whole
 	// channel's pixels in one shot with as few function calls and as
 	// little memory copying as we can manage.
@@ -96,11 +98,25 @@ public class PBXDataChannel extends PBXChannel {
 		return header_size;
 	} 
 
-	// must be overridden by child classes
+    // Stub to allow iteration over all channel types. 
+	// Should be overridden with a real implementation by child classes that actually have
+	// pixels to set.
 	void setPixel(int index,int c) {
-		//	    println("Bogus call to theoretically virtual object. Just.. no!");
-	}	    
-	
+       ;
+	}
+
+    // Stub to allow iteration over all channel types. 
+	// Should be overridden with a real implementation by child classes that care about 
+	// the various drawing modes (clock channels, for example don't).
+	/**
+	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
+	 * DrawMode can be changed at any time. 
+	 */	
+	public void setDrawMode(DrawMode dm) {
+		drawMode = dm;
+	}
+   	
 	// build brightness/gamma table and color correction tables 
 	// Variable gamma correction is done by power curve, which gives the user control
 	// over the shape of the curve and can actually be fairly accurate, depending on the
@@ -140,6 +156,10 @@ public class PBXDataChannel extends PBXChannel {
         buildColorTables();
 	}
 
+    /**	
+	  Gets brightness value (range 0..1) for this channel.
+	 * 
+	 */
 	public float getBrightness() {
 		return brightness;
 	}	  
@@ -162,7 +182,7 @@ public class PBXDataChannel extends PBXChannel {
 	// by all data channel constructors automatically.
 	//
 	// Takes an RGB color, returns the 'corrected' version of that color. 
-    public int correctColor(int c) {
+    int correctColor(int c) {
 		int r,g,b;
 
 		// get white balanced values for each color component 
@@ -174,14 +194,15 @@ public class PBXDataChannel extends PBXChannel {
 		return b | (g << 8) | (r << 16);		
 	}
 	
-	
 	/**
 	 * Sets r,g and b color correction factors -- per color component "multipliers" in the 
 	 * range (0..1) that will be multplied with pixel colors to produce, at full brightness,
 	 * the particular 'white' you want to match.  
 	 */			
 	public void setColorCorrection(float r,float g, float b) {
-		//validate and store correction factors, then rebuild tables		
+		// validate and store correction factors, then rebuild tables
+		// TODO - should we normalize the correction factors to keep brightness
+		// as high as possible?  Or will that make it a great PITA to adjust?
 		
 		cfR = Math.min(1,Math.max(0,r));
 		cfG = Math.min(1,Math.max(0,g));
@@ -189,7 +210,9 @@ public class PBXDataChannel extends PBXChannel {
 		buildColorTables();
 	}	
 
-	public float getGlobalBrightness() {
+	// Internal: Ask the next guy above us for the global brightness
+	// value.  Eventually, somebody up there will know...
+	float getGlobalBrightness() {
 		return board.getGlobalBrightness();
 	}		
 }  

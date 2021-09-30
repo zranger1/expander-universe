@@ -188,7 +188,7 @@ void setup() {
   // We don't actually need to keep the channel object (ch1) around, but
   // if we do, we can use it to control per channel brightness and gamma
   // correction.  (The same is true at the expander board level.)
-  ch1 = leds.addChannelAPA102(b0,0,300,4000000,"BGR"); 
+  ch1 = leds.addChannel(b0,ChannelType.APA102,0,300,4000000,"BGR"); 
   
   // (to use WS2812-protocol LEDs instead, substitute:
   // ch1 = leds.addChannelWS2812(b0,0,300,"BGR");    
@@ -199,7 +199,7 @@ void setup() {
   // the LED channel, although the output expander will have the last word.
   // If WS28xx LEDs are connected to the expander board, all APA102s will run
   // at the WS's 800khz clock speed.
-  leds.addChannelAPAClock(b0,1,4000000);
+  leds.addChannel(b0,ChannelType.APACLOCK,1,4000000);
 
   // set Processing's color mode for whatever you find convenient. You 
   // can even change colorMode at any time.  ExpanderVerse and Processing

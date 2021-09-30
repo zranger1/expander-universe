@@ -1,6 +1,6 @@
 ## ExpanderVerse ##
 
-(Beta 0.1.0) - Things will be changing frequently 'till the 1.0 release!
+(Beta 0.2.0) - Things will be changing frequently 'till the 1.0 release!
 
 ExpanderVerse lets you drive addressable LEDs with your computer, a USB->Serial adapter, and a [Pixelblaze Output Expander](https://www.bhencke.com/serial-led-driver) board.  Potentially *many* LEDs. 
 

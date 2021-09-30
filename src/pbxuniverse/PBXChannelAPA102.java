@@ -1,7 +1,5 @@
 package pbxuniverse;
 
-import pbxuniverse.PBXDataChannel._pixelSetter;
-
 public class PBXChannelAPA102 extends PBXDataChannel {
 	int offs_filler;
 
@@ -34,7 +32,7 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 		setFrequency(freq);       
 		setPixelCount(pixelCount); 
 
-		ps = new _hdSetter(); //new _defaultSetter();
+		setDrawMode(DrawMode.FAST); 
 	}
 
 	// RGB color order.  
@@ -77,6 +75,23 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 			outgoing[index++] = (byte) ((c >> 8) & 0xFF);  // G
 			outgoing[index++] = (byte) (c & 0xFF);         // B
 			outgoing[index] = (byte) ((c >> 24) & 0xFF); // Flags & Brightness			
+		}
+	}
+	
+	/**
+	 * Sets pixel drawing mode for this channel, either DrawMode.FAST (brightness & gamma adjustment only) or
+	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).<p>
+	 * DrawMode can be changed at any time. 
+	 */	
+	public void setDrawMode(DrawMode dm) {
+		super.setDrawMode(dm);
+		switch (dm) {
+		case FAST:
+			ps = new _defaultSetter(); 
+			break;
+		case ENHANCED:
+			ps = new _hdSetter(); 
+			break;
 		}
 	}
 

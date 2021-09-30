@@ -2,7 +2,7 @@
 
 ExpanderVerse lets you drive addressable LEDs with your computer, a USB->Serial adapter, and a [Pixelblaze Output Expander](https://www.bhencke.com/serial-led-driver) board.  Potentially *many* LEDs. 
 
-(Beta 0.1.0) NOTE: Things will be changing frequently 'till the 1.0 release!
+(Beta 0.2.0) NOTE: Things will be changing frequently 'till the 1.0 release!
 
 #### Introduction
 I'm a big fan of the Pixelblaze. It's the fastest way to get to the fun, creative part of an LED project. However, I've been working on a large scale, stationary art project, in a situation where reliable wifi was not going to be possible.  I needed wired control over thousands of LEDs at a reasonably high frame rate, with very high reliability.  The Pixelblaze Output Expander board provided a great way to drive all those LEDs, but for the multimedia, interactive bits, I was going to need a heftier controller.
