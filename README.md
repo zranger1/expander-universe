@@ -14,7 +14,7 @@ So, instead of looking for another microcontroller, I took the USB->Serial inter
 - You have plenty of A/C power at your site, or at least very long extension cords
 - You want to smoothly animate an installation with several thousand LEDs.
 - You want the reliability and security of a hardwired interface.
-- You'd like a centralized point of control and syncrhonization for your project.
+- You'd like a centralized point of control and synchronization for your project.
 - You need to interact with or sync to the internet or other media, or to use the vast array of interface devices
 which communicate via PC.
 
@@ -23,7 +23,8 @@ ExpanderVerse and a whole bunch of Pixelblaze Output Expander boards might be ex
 #### Features
 - Supports multiple serial ports (as many as your computer can handle) and multiple output expander boards (up to 8) per port.
 Serial I/O is multithreaded to maximize bandwidth for large installations.
-- Each expander board channel can drive up to 800 RGB WS2812s, or 600 RGBW LEDs or APA102s. 
+- Each expander board supports 8 channels.
+- Each channel can drive up to 800 RGB WS2812s, or 600 RGBW LEDs or APA102s. 
 - Mix and match LED types, then adjust them to match brightness and white balance. ExpanderVerse supports brightness and gamma correction control from the global level down to the individual channel, and (optional, and at this point experimental) per-channel color balance adjustment.
 - Supports Pixelblaze-style 2D and 3D coordinate mapping, and can import JSON Pixelblaze maps.  Retains both world and normalized maps for use in your patterns.
 - Render in [Processing](www.processing.org), then send to your LEDs!  Supports "index mapping" to allow easy, one step transfer of 2D image sections from Processing's PImage and PGraphics objects. 
