@@ -43,9 +43,9 @@ void setup() {
   
   // add three channels of 200 LEDs each to the expansion board we just created
   // (tested w/3 strands of the "strange" brzlab fairy lights.)
-  ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
-  ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
-  ch3 = leds.addChannelWS2812(b0,2,200,"RGB");   
+  ch1 = leds.addChannel(b0,ChannelType.WS2812,0,200,"RGB"); 
+  ch2 = leds.addChannel(b0,ChannelType.WS2812,1,200,"RGB"); 
+  ch3 = leds.addChannel(b0,ChannelType.WS2812,2,200,"RGB");   
 
   // set Processing's color mode for whatever you find convenient. ExpanderVerse
   // will handle any required conversion.

@@ -124,7 +124,7 @@ void setup() {
   // We don't actually need to keep the channel object (ch1) around, but
   // if we do, we can use it to control per channel brightness and gamma
   // correction.  (The same is true at the expander board level.)
-  ch1 = leds.addChannelWS2812(b0,0,mHeight * mWidth,"GRB"); 
+  ch1 = leds.addChannel(b0,ChannelType.WS2812,0,mHeight * mWidth,"GRB"); 
     
   // limit the maximum brightness to keep the power supply happy.  If you know
   // your LEDs can run brighter, by all means, turn it up.

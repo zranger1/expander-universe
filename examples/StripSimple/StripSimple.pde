@@ -37,7 +37,7 @@ void setup() {
   b0 = leds.addOutputExpander(outPort,0);
   
   // add a 200 LED WS2812 strip to the expansion board we just created
-  ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
+  ch1 = leds.addChannel(b0,ChannelType.WS2812,0,200,"RGB"); 
 
   // set Processing's color mode for whatever you find convenient. ExpanderVerse
   // will handle any required conversion.

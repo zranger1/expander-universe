@@ -127,18 +127,19 @@ public class PBXDataChannel extends PBXChannel {
 		float bri = brightness * board.getGlobalBrightness(); 		
 		
 		for (int i = 0; i < levelTable.length;i++) {
+			float fi = (float) i; // just to make sure the right thing happens;
 			
             // precalculate white corrected values for R,G and B, so we can just look them
 			// up at pixel setting time.  This correction is first in the chain
 			// of color processing at commit() time, so it is done at the original
 			// pixel's brightness, before global brightness and gamma correction
 			// are applied.
-			rCorrect[i] = (byte) (i * cfR);
-			gCorrect[i] = (byte) (i * cfG);
-			bCorrect[i] = (byte) (i * cfB);
-			
+			rCorrect[i] = (byte) Math.floor(fi * cfR);
+			gCorrect[i] = (byte) Math.floor(fi * cfG);
+			bCorrect[i] = (byte) Math.floor(fi * cfB);
+						
 			// linear brightness value...
-			float val = ((float) i)/levelTable.length;
+			float val = fi/levelTable.length;
 					
 			// calculate gamma corrected brightness
 			val = bri * (float) Math.pow(val,gammaCorrection);

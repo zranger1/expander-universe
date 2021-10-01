@@ -108,7 +108,7 @@ void setup() {
   // We don't actually need to keep the channel object (ch1) around, but
   // if we do, we can use it to control per channel brightness and gamma
   // correction.  (The same is true at the expander board level.)
-  ch1 = leds.addChannelWS2812(b0,0,mHeight * mWidth,"GRB"); 
+  ch1 = leds.addChannel(b0,ChannelType.WS2812,0,mHeight * mWidth,"GRB"); 
 
   // set Processing's color mode for whatever you find convenient. You 
   // can even change colorMode at any time.  ExpanderVerse and Processing
@@ -136,7 +136,9 @@ void setup() {
   
   // The LED output looks much better if you use the highest available smoothing
   // on very low-res surfaces.  Rendering a few thousand pixels is so little work 
-  // for a modern GPU that there's no fps penalty for doing so.
+  // for a modern GPU that there's no fps penalty for doing so.  HOWEVER, this may
+  // not run on Processing 4 at the moment, due to a bug.  If that's the case,
+  // comment out the smooth() or use Processing 3 instead.  
   pgLed.smooth(8);  
   timer = millis();
 }

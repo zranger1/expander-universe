@@ -32,7 +32,7 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 		setFrequency(freq);       
 		setPixelCount(pixelCount); 
 
-		setDrawMode(DrawMode.FAST); 
+		setDrawMode(DrawMode.ENHANCED); 
 	}
 
 	// RGB color order.  
@@ -51,7 +51,7 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 	protected class _defaultSetter implements _pixelSetter {
 
 		public void setPixel(int index,int c) {
-			index = header_size + (index * 4);
+			index = header_size + (index * 4);	
 			outgoing[index++] = levelTable[(c >> 16) & 0xFF];  // R
 			outgoing[index++] = levelTable[(c >> 8) & 0xFF];   // G;
 			outgoing[index++] = levelTable[c & 0xff];          // B
@@ -59,9 +59,10 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 		} 
 	}
 
-	// RGB setPixel for APA 102 
-	// Expands dynamic range of incoming RGB data to 
-	// use more of the extended brightness bits. 
+	// HD RGB setPixel for APA 102 
+	// Supports color correction and expands dynamic range of incoming RGB data to
+	// use extended brightness bits.  This version stretches Processing's 8-bpp color
+	// over the APA's wider range.
 	// TODO - works on my APA 102 clones.  Does it work for everybody?
 	//
 	// Based on detailed APA protocol/behavior info at:

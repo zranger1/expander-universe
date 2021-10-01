@@ -53,13 +53,13 @@ void setup() {
   // Add, delete, modify according to your setup.
   // We keep the channel handles around to test per-channel control features.
   // You don't need them just to run patterns.
-  ch1 = leds.addChannelWS2812(b0,0,200,"RGB"); 
-  ch2 = leds.addChannelWS2812(b0,1,200,"RGB"); 
-  ch3 = leds.addChannelWS2812(b0,2,200,"RGB"); 
-  ch4 = leds.addChannelAPA102(b1,0,300,2000000,"BGR");
-  ch5 = leds.addChannelAPAClock(b1,1,200000);  
-  ch6 = leds.addChannelWS2812(b1,2,256,"GRB"); 
-  ch7 = leds.addChannelWS2812(b1,3,576,"GRBW");   
+  ch1 = leds.addChannel(b0,ChannelType.WS2812,0,200,"RGB"); 
+  ch2 = leds.addChannel(b0,ChannelType.WS2812,1,200,"RGB"); 
+  ch3 = leds.addChannel(b0,ChannelType.WS2812,2,200,"RGB"); 
+  ch4 = leds.addChannel(b1,ChannelType.APA102,0,300,2000000,"BGR");
+  ch5 = leds.addChannel(b1,ChannelType.APACLOCK,1,200000);  
+  ch6 = leds.addChannel(b1,ChannelType.WS2812,2,256,"GRB"); 
+  ch7 = leds.addChannel(b1,ChannelType.WS2812,3,576,"GRBW");   
 
   // set Processing's color mode for whatever you find convenient. ExpanderVerse
   // will handle any required conversion.
