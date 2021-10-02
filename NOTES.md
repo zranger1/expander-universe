@@ -6,6 +6,7 @@ b0.2.0 adds
 - extended dynamic range for APA102-class LEDs.
 - per channel color correction API - lets you (at least try to) match whites across multiple
 LED types. 
+- minor refactoring of channel creation for simplicity and consistency.  
 
 
 ### Wiring
@@ -15,7 +16,7 @@ I have my computer->LED system conficured up as described below.  I have chosen 
 power supply and just be sure it has a common ground with the Output Expander so data transmission will work.  If you're
 powering the Expander via USB **do not connect the +5v from the power supply to the Output expander in any way, shape or form.**
 
-**(5v systems only)**
+**(5v systems)**
 
 With the "normal" Output Expander, you can't run enough power through the board to drive very many LEDs anyway.  The pro version
 is a different matter.  If you have one of these, and want to route power through the expander to keep wiring simple, I'd suggest leaving the power wire from the USB interface unconnected.  You can then use your main power supply to power the Output Expander and the LEDs will get power from it. 
@@ -28,6 +29,7 @@ connect grounds from the power supplies, LEDs, and the Output Expander to the co
 = Connect the LED 
 
 **(12v and 24v systems)**
+
 If you're using a 12v or 24v system, you'll need to connect and ground the data lines, which run at a 5v logic level to the Output
 Expander.  But the higher voltage power must only run to the places that can handle it -- from the power supplies to the LED's power wires.
 
@@ -39,8 +41,6 @@ Hub implementations vary.  I have no idea if a given USB hub will or won't work.
 
 ### Roadmap
 Coming soon:
-- Extended definition color for APA102 type LEDs.  The framework's in, I'm still working on mapping Processing's
-24-bit color to HDR.
 - Power analysis - will tell you the peak and average wattage used during a run.
-- Multiple maps, and more shape tools for mapping
+- Mapping tools:  multiple maps, more shape tools for mapping, more examples.
 - Way more documentation.  Javadocs, tutorials, everything...
