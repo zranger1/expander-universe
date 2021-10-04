@@ -1,11 +1,13 @@
 package pbxuniverse;
 
-
+/**
+ * Holds settings and data for WS2812 output channels
+ * 
+ */
 public class PBXChannelWS2812 extends PBXDataChannel {
 	boolean isRGBW;
 
 	// full constructor -- all channel parameters
-	// TODO - we still don't really handle W, or the -W orders correctly
 	PBXChannelWS2812(PBXBoard brd, byte ch_number,int pixelCount, String colorString) {
 		super(brd, ch_number,CH_WS2812_DATA);
 

@@ -4,6 +4,10 @@ import java.util.*;
 
 import processing.core.PApplet;
 
+/** 
+ * Settings, data and utilities for individual Pixelblaze Output Expander (PBX) boards.
+ * 
+ */
 public class PBXBoard {
 	static final int DATA_RATE = 2000000;
 	PBXSerial port;
@@ -32,7 +36,13 @@ public class PBXBoard {
 		return board_id;
 	}
 
-	// Create channel for RGB or RGBW WS2812/Neopixel class LEDs
+	/**
+	  Create channel for RGB or RGBW WS2812/Neopixel class LEDs	 * 
+	 * @param chNumber
+	 * @param pixelCount
+	 * @param colorString
+	 * @return created PBXDataChannel object
+	 */
 	public PBXDataChannel addChannelWS2812(int chNumber,int pixelCount,String colorString) { 
 		PBXDataChannel ch = new PBXChannelWS2812(this,(byte) chNumber, pixelCount,colorString);
 		addChannel(ch);
@@ -40,7 +50,14 @@ public class PBXBoard {
 		return ch;
 	}
 
-	// Create data channel for APA102/Dotstar LEDs
+	/**
+	 * Create data channel for APA102/Dotstar LEDs
+	 * @param chNumber
+	 * @param pixelCount
+	 * @param frequency
+	 * @param colorString
+	 * @return created PBXDataChannel object
+	 */
 	public PBXDataChannel addChannelAPA102(int chNumber,int pixelCount,int frequency,String colorString) {   
 		PBXDataChannel ch = new PBXChannelAPA102(this,(byte) chNumber,pixelCount,frequency,colorString);
 		addChannel(ch);
@@ -48,8 +65,18 @@ public class PBXBoard {
 		return ch;
 	}
 
-	// Create clock channel for APA102/Dotstar LEDs
-	// if you use APA102s, you'll need to dedicate one clock channel.
+	/**
+	  Create clock channel for APA102/Dotstar LEDs
+	  
+      APA102 LEDs require that one output channel on the expander board be set up as
+      a dedicated clock channel. If you have multiple APA102 strips attached to a board,
+      you can connect them all to the same clock channel.  Valid clock speeds range from
+      250khz to 20Mhz
+
+	 * @param chNumber
+	 * @param frequency
+	 * @return created PBXDataChannel object
+	 */
 	public PBXDataChannel addChannelAPAClock(int chNumber,int frequency) {     
 		PBXDataChannel ch = new PBXChannelAPAClock(this,(byte) chNumber,frequency);
 		addChannel(ch);
@@ -137,7 +164,7 @@ public class PBXBoard {
 		b = PApplet.constrain(b,(float) 0.0,(float) 1.0);
 		for (PBXDataChannel ch : channels) { ch.setBrightness(b); }    		
 	}
-	
+
 	/**
 	 * Sets r,g and b color correction factors - values in the range 0..1 that will be multiplied
 	 * with pixel colors to produce the particular 'white' you want to match.
@@ -146,7 +173,7 @@ public class PBXBoard {
 	public void setColorCorrection(float r,float g, float b) {
 		for (PBXDataChannel ch : channels) { ch.setColorCorrection(r,g,b); }  
 	}	
-	
+
 	/**
 	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
 	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).
@@ -156,5 +183,5 @@ public class PBXBoard {
 	public void setDrawMode(DrawMode dm) {
 		for (PBXDataChannel ch : channels) { ch.setDrawMode(dm); }  		
 	}
-	
+
 }

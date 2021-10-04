@@ -2,6 +2,13 @@ package pbxuniverse;
 
 import java.util.zip.CRC32;
 
+/**
+ * Top level container class for all Pixelblaze Output Expander (PBX) channels.
+ * 
+ * Implements data and utilities common to and used by all channels. Under normal 
+ * circumstances, this class should not be used in in programs.  For a general purpose
+ * channel object container class, use PBXDataChannel in your sketches instead. 
+ */
 public class PBXChannel {
 	final static int MAX_PIXELS_PER_CHANNEL = 800;
 	final static int CHANNEL_BUFFER_SIZE = 16+(MAX_PIXELS_PER_CHANNEL * 4);

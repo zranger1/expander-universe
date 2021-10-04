@@ -2,6 +2,11 @@ package pbxuniverse;
 
 import processing.core.PApplet;
 
+
+/**
+ * Container class for all Pixelblaze Output Expander (PBX) data channels, including
+ * channels for all LED types and clock data. 
+ */
 public class PBXDataChannel extends PBXChannel {
 	// offsets of data elements in the output packet
 	// how we build a packed structure in a language that doesn't
@@ -85,6 +90,7 @@ public class PBXDataChannel extends PBXChannel {
 		return pixel_count;	  
 	}
 
+	// Internal
 	void setPixelCount(int n) {
 		pixel_count = n;
 		packShort(offs_pixel_count,n);

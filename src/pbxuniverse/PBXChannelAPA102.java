@@ -1,14 +1,20 @@
 package pbxuniverse;
-
+/**
+ * Holds settings and data for APA102-type channels
+ * 
+   Dotstar/SK9822/APA102 LEDs require that one output channel on the expander board be set up as
+   a dedicated clock channel. If you have multiple APA102 strips attached to a board,
+   you can connect them all to the same clock channel.  You can specify a desired clock frequency
+   when creating an APA102 channel. Valid clock speeds range from 250khz to 20Mhz.  The default
+   frequency if none is specified, is 2000000 (2Mhz).  
+ */	
 public class PBXChannelAPA102 extends PBXDataChannel {
 	int offs_filler;
-
-	// can specify all channel parameters in the constructor
+	
 	// APA protocol is always 4 bytes w/RGB in some order.  The [0]th byte contains 3 bits of flag,
 	// then 5 bits of global brightness.
 	// Note that this structure is not actually packed. There's a filler byte after the color order byte to maintain
 	// alignement.  The Pixelblaze always sends '0xFF' in this position.
-	// TODO - we're just maxing the extra APA brightness bits for now -- should do something interesting with it.
 	PBXChannelAPA102(PBXBoard brd,byte ch_number,int pixelCount,int freq, String colorString) {
 		super(brd, ch_number,CH_APA102_DATA);
 

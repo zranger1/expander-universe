@@ -33,6 +33,10 @@ public class PBXPixel {
 		map.set(v);
 	}
 	
+	/**
+	 * Gets a 3-element vector containing the pixel's current world map coordinates.
+	 * @param v - existing vector object into which to place results
+	 */
 	public void getMapCoordinates(PVector v) {
 	   v.set(map);
 	}
@@ -51,6 +55,10 @@ public class PBXPixel {
 		nMap.set(v);
 	}	
 	
+	/**
+	 * Gets a 3-element vector containing the pixel's current normalized map coordinates.
+	 * @param v - existing vector object into which to place results
+	 */	
 	public void getNormalizedCoordinates(PVector v) {
 		v.set(nMap);
 	}
@@ -73,8 +81,7 @@ public class PBXPixel {
 	}
 	
 	/**
-	   Sets rgb color of a pixel in the backing buffer. (Doesn't
-	   set the actual outgoing packet data 'till draw time.)
+	   Sets color of a pixel in the backing buffer. 
 	 * 
 	 * @param c - a Processing color() object
 	 */
@@ -82,13 +89,17 @@ public class PBXPixel {
 		this.pixel = c;
 	}
 	
-	// get pixel color from the backing buffer
+	/**
+	 * Gets the color of a pixel, in Processing color() object format, from the backing buffer
+	 * @return = color() object containing the pixel's color.
+	 */
 	public int getColor() {
 		return this.pixel;
 	}
 
-	// "simple" commit function - just transfers RGB pixels to the channel
-	// output buffers so it can be transmitted.
+	// commit function - transfers all pixel colors to the channel
+	// output buffers so they can be transmitted to the LEDs
+	// TODO -- how can we make this go faster?
 	void commit() {
 		channel.setPixel(dataOffset,pixel);
 	}

@@ -5,8 +5,12 @@ import processing.serial.*;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-// serial port with the ability to send a "DRAW ALL" command, because
-// you only need to send the command once per port per frame.
+/**
+ * ExpanderVerse serial port object.
+ * <p> Each port has its own thread for data transmission, and
+ * can "own" and send data to 1-8 Pixelblaze Output Expander boards
+ * (see the PBXBoard docs for more details)
+ */
 public class PBXSerial extends Serial {
 	static final int DATA_RATE = 2000000;
 	static final int MAX_CHANNELS = 65;  // max channels per serial port
@@ -22,6 +26,12 @@ public class PBXSerial extends Serial {
 	LinkedList<PBXBoard> boards;  // boards attached to this port
 	AtomicInteger writeCommand;
 
+	
+	/**
+	 * Open the specified serial port and create a new PBXSerial object
+	 * @param parent parent ExpanderVerse object
+	 * @param portName name of serial port: "COM5", "/dev/ttyUSB0", etc.
+	 */
 	PBXSerial(ExpanderVerse parent, String portName) {
 		super(parent.pApp,portName,DATA_RATE);
 		this.parent = parent;
@@ -39,6 +49,10 @@ public class PBXSerial extends Serial {
 		return parent.pApp;
 	}
 
+	/**
+	 * @return the (String) name of the serial port associated with this
+	 * object.
+	 */
 	public String getPortName() {
 		return name;
 	}
@@ -57,9 +71,7 @@ public class PBXSerial extends Serial {
 		return b;
 	}
 
-	/**
-       Internal - add an expander board to the port's linked list.
-	 */	
+    //   Internal - add an expander board to the port's linked list.
 	void addBoard(PBXBoard b) {
 		boards.add(b);
 	}

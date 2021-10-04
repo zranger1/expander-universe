@@ -2,6 +2,7 @@ package pbxuniverse;
 
 /**
  * Channel types which can be used with addChannel to create LED channels.
+ * <p>
  * These types reflect the underlying protocol rather than the physical LED model. At
  * this writing, most addressable LEDs use either the WS2812 (3-wire, no clock) or the
  * APA102 (4-wire, clock required) protocol.  <p>
