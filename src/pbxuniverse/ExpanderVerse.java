@@ -351,12 +351,12 @@ public class ExpanderVerse {
 	//
 	protected void createPixelBlock(PBXDataChannel ch, int pixelCount) {
 		PVector m = new PVector();
-		int imageIndex = getImageIndexMax();
+		int imageIndex = getNextAvailableImageIndex();
 
 		// add and map new pixels
 		for (int i = 0; i < pixelCount; i++) {
 			PBXPixel pix = new PBXPixel(pApp.color(0), ch, i);
-			m.set(imageIndex,0,0);
+			m.set((float) imageIndex,0,0);
 			pix.setMapCoordinates(m);
 			pix.setIndex(imageIndex++);
 			pixels.add(pix);      
@@ -495,15 +495,16 @@ public class ExpanderVerse {
 	// Coordinate mapping and related functions
 	////////////////////////////////////////////////////////////////////////////////
 
-	// return the highest image index value in the pixel list.  Called
+	// return the next available image index value in the pixel list. This will be
+	// either 0 if the list is empty, or 1+the highest existing value. Called
 	// when setting up new blocks of pixels.
-	int getImageIndexMax() {
+	int getNextAvailableImageIndex() {
 		int nMax = 0;
 		// make a pass through the entire map to find min/max coords
 		for (PBXPixel p : pixels) {
 			if (p.index > nMax) nMax = p.index;
 		}
-		return nMax;
+		return (nMax == 0) ? 0 : nMax + 1;
 	}		
 
 	/** The image index tells which pixel in a PImage of 
