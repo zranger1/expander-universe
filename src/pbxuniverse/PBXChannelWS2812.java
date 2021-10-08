@@ -87,8 +87,15 @@ public class PBXChannelWS2812 extends PBXDataChannel {
 		else {
 			ps = new _ERGBSetter();	
 		}
-	}			
+	}
 	
+	/**
+	 * Returns the ChannelType enum for this channel. 
+	 */
+	public ChannelType getChannelType() {
+	   return ChannelType.WS2812;
+	}		
+		
 	/**
 	 * Sets pixel drawing mode, either DrawMode.FAST (brightness & gamma adjustment only) or
 	 * DrawMode.ENHANCED (brightness, gamma, color correction, color depth expansion if supported by LEDs).

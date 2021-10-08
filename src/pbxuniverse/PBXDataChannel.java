@@ -110,7 +110,7 @@ public class PBXDataChannel extends PBXChannel {
 	void setPixel(int index,int c) {
        ;
 	}
-
+	
     // Stub to allow iteration over all channel types. 
 	// Should be overridden with a real implementation by child classes that care about 
 	// the various drawing modes (clock channels, for example don't).

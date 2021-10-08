@@ -51,6 +51,13 @@ public class PBXChannelAPA102 extends PBXDataChannel {
 		frequency = f;
 		packInt(offs_frequency,frequency);
 	}  
+	
+	/**
+	 * Returns the ChannelType enum for this channel. 
+	 */
+	public ChannelType getChannelType() {
+	   return ChannelType.APA102;
+	}		
 
 	// default (fast) RGB pixel setter for APA 102 - sets extended brightness
 	// to maximum. (essentially ignoring it);

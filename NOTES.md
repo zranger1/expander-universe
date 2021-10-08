@@ -1,25 +1,36 @@
-## NOTES
-This is a power tool. Coding is required. It is not meant for absolute beginners. To use it successfully, you have to be comfortable with at least a little Processing programming, and know enough about electricity to wire all your lights together without setting things on fire.  
+## ExpanderVerse NOTES
 
 #### What's New
-b0.2.0 adds
-- extended dynamic range for APA102-class LEDs.
+#####b0.3.0 
+- fixes and improvements to automatic map building and coordinate normalization
+- added PBXTools static utility class, with helpful things like triangle(), wave() and square().  More
+to come!
+- added drag and drop installer for Processing 4
+
+
+#####b0.2.0 
+- extended dynamic range for APA102-class LEDs. is now in and enabled by default.
 - per channel color correction API - lets you (at least try to) match whites across multiple
 LED types. 
 - minor refactoring of channel creation for simplicity and consistency.  
 
+#### A Word of Caution
+ExpanderVerse is a power tool. Coding is required. It is not meant for absolute beginners. To use it successfully, you have to be comfortable taking on at least a little Processing/Java programming, and know enough about electricity to wire all your lights together without setting things on fire.  
 
 ### Wiring
 
-I have my computer->LED system conficured up as described below.  I have chosen to power the Output Expander from the USB port.  If you do this,
-**DO NOT TRY TO POWER LEDS FROM THE EXPANDER. Be careful about this. You could kill your PC.**  Instead, hook the LEDs up to their own
-power supply and just be sure it has a common ground with the Output Expander so data transmission will work.  If you're
-powering the Expander via USB **do not connect the +5v from the power supply to the Output expander in any way, shape or form.**
+I have my development setup wired as described below under the 5v systems heading.
 
-**(5v systems)**
+**General Notes**
 
-With the "normal" Output Expander, you can't run enough power through the board to drive very many LEDs anyway.  The pro version
-is a different matter.  If you have one of these, and want to route power through the expander to keep wiring simple, I'd suggest leaving the power wire from the USB interface unconnected.  You can then use your main power supply to power the Output Expander and the LEDs will get power from it. 
+If you choose to power the Output Expander from a USB port, be sure you **DO NOT TRY TO POWER LEDS FROM THE EXPANDER. Be super careful about this. You could damage your computer by drawing too much power.** 
+
+Instead, hook the LEDs up to their own power supply andbe sure it has a common ground with the Output Expander so data transmission will work.  If you're powering the Expander via USB **do not connect the +5v from your LED power supply to the Output expander in any way, shape or form.**
+
+With the "normal" Pixelblaze Output Expander, you can only run enough power through the board to handle a few LEDs anyway.  The "pro" version is a different matter. If you have one of these, and want to route power through the expander to keep wiring simple, I'd suggest **not** powering the expander board from USB. You can then use your main power supply to power the Output Expander and the LEDs can safely draw their power from that.
+
+
+**For 5v Systems**
 
 - Connect the power and ground wires from the USB interface to the Output Expander.  Make sure the USB->Serial board is set up for 5v if it is switchable.
 - Connect the USB Interface's Tx line to the Output Expander's Rx line.
@@ -28,10 +39,11 @@ is a different matter.  If you have one of these, and want to route power throug
 connect grounds from the power supplies, LEDs, and the Output Expander to the common ground bus. )
 = Connect the LED 
 
-**(12v and 24v systems)**
+**For 12v and 24v systems**
 
-If you're using a 12v or 24v system, you'll need to connect and ground the data lines, which run at a 5v logic level to the Output
-Expander.  But the higher voltage power must only run to the places that can handle it -- from the power supplies to the LED's power wires.
+Data and clock wiring is the same as in a 5v system - You'll need to connect and ground the data and clock lines, which run at a 5v logic level to the Output Expander.
+
+But take care that higher voltage power only run to the places that can handle it -- from the power supplies to the LED's power wires. 
 
 ### USB line length
 USB is a low voltage serial protocol. It suffers from voltage drop and signal degradation just like everything else. You can get at least 3 meters out of ordinary USB extension cables.  After that, you'll need to use active cables, which regenerate the signal along the way.  I've used 30-foot versions for VR, and seen 50-foot versions for sale.  If you need more, you can extend to over 100 meters with a USB->Ethernet bridge. 

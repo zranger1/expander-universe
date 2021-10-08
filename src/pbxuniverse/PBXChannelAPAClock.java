@@ -31,4 +31,12 @@ public class PBXChannelAPAClock extends PBXDataChannel {
 		frequency = f;
 		packInt(offs_frequency,f);
 	}  
+	
+	/**
+	 * Returns the ChannelType enum for this channel. 
+	 */
+	public ChannelType getChannelType() {
+	   return ChannelType.APACLOCK;
+	}		
+	
 }

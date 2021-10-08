@@ -457,6 +457,17 @@ public class ExpanderVerse {
 	public void setAllPixels(int color) {
 		for (PBXPixel pix : pixels) { pix.setColor(color); }
 	}
+	
+	/**
+	 * Sets all pixels on the specified channel to 
+	 * a single color.
+	 * @param color
+	 */
+	public void setAllPixels(PBXDataChannel ch, int color) {
+		for (PBXPixel pix : pixels) {
+			if (pix.channel == ch) pix.setColor(color);
+		}
+	}		
 
 	/**
 	 * Sets all pixels associated with this ExpanderVerse object to
@@ -465,6 +476,14 @@ public class ExpanderVerse {
 	public void clearPixels() {
 		setAllPixels(0);
 	}
+	
+	/**
+	 * Sets all pixels on the specified channel to 
+	 * black (off)
+	 */		
+	public void clearPixels(PBXDataChannel ch) {
+		setAllPixels(ch,0);
+	}	
 
 	/**  
 	 * Render all pixels to the LEDs on all ports, adapters and channels.
@@ -533,7 +552,19 @@ public class ExpanderVerse {
 		pixels.get(i).setNormalizedCoordinates(m);
 	}	
 
-	// normalize <count> map entries, starting at index <start>
+	/**
+	 *  Build normalized coordinate map from the world coordinate map over the 
+	 *  specific range of pixels.  Note that using this method, it is possible to
+	 *  have several independent (0..1) normalized coordinated maps over the space
+	 *  of a given display.  This makes it easier to divide the display into 
+	 *  independent "segments" and render those segments each with its own normalized
+	 *  coordinate space.<p>  
+     *
+     *  The world coordinate map must be set to valid values over the given range
+     *  before calling this function or the resulting normalized map will be useless.
+	 *  @param start index of starting pixel
+	 *  @param count number of pixels in range
+	 */
 	public void normalizeMapSegment(int start,int count) {
 		// init max and min values.  If anybody's using world coordinates outside
 		// the two hundred million range, they're welcome to the bug they'll find.
@@ -570,7 +601,9 @@ public class ExpanderVerse {
 	}
 
 	/**
-	 *  Build a normalized map from the world coordinate map. World coordinate
+	 *  Build a normalized map from the world coordinate map.
+	 *  <p>
+	 *  World coordinate
 	 *  map must be set before calling this method or mayhem will ensue.
 	 */
 	public void buildNormalizedMap() {

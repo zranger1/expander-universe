@@ -12,5 +12,6 @@ package pbxuniverse;
 public enum ChannelType {
 	WS2812,
 	APA102,
-	APACLOCK
+	APACLOCK,
+	SYSTEM
 }

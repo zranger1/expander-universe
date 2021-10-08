@@ -87,11 +87,21 @@ public class PBXChannel {
 		outPort.write(outgoing);
 	}  
 
-	// Utility - helper for PBXBoard aggregator class
-	// returns composite board id/channel number as int
-	int getChannelNumber() {
+	/**
+	  Returns the composite board id/channel number as an int
+	 */
+	public int getChannelNumber() {
 		return Byte.toUnsignedInt(channel_number);
 	}
+	
+	/**
+	 * Returns the channel type enum for this channel. Should be overridden
+	 * to return the correct type for all data and clock channels. For other
+	 * channel types, always returns ChannelType.SYSTEM.
+	 */
+	public ChannelType getChannelType() {
+	   return ChannelType.SYSTEM;
+	}	
 
 	// given a color initial "R","G","B","W", and a string specifying
 	// the order of colors for an LED channel, return the index of the
