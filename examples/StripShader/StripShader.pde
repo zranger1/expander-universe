@@ -149,7 +149,7 @@ void setup() {
   // P2D or P3D will work here since we're only using it as a canvas for the 
   // shader.
   pgLed = createGraphics(pixelCount,1,P2D);
-  pgLed.noSmooth();  
+  // pgLed.noSmooth();   // uncomment the noSmooth() if you're running on Processing 3.
   pgLed.noStroke();  
   
   // load and intialize all the shaders we'll be using

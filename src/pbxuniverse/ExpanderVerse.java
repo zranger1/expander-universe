@@ -691,7 +691,7 @@ public class ExpanderVerse {
 	/**
 	 * Read a Pixelblaze compatible 2d/3d JSON map into the current ExpanderVerse's map, starting
 	 * at the specified index. Since all maps in ExpanderVerse are 3D, if you import a 2D map, the
-	 * z coordinate will be automatically set to zero.
+	 * z coordinate will be automatically set to zero. <p>
 	 * @param fileName Name of file to read
 	 * @param index starting destination index for map 
 	 * @param scale Coordinate multiplier for scaling output
@@ -699,8 +699,9 @@ public class ExpanderVerse {
 	public void importPixelblazeMap(String fileName,int index, float scale) {
 		PVector m = new PVector();
 		JSONArray json = pApp.loadJSONArray(fileName);
+		int n = json.size();
 
-		for (int i = 0; i < json.size(); i++) {
+		for (int i = 0; i < n; i++) {
 			JSONArray mapEntry = json.getJSONArray(i);
 
 			float [] coords = mapEntry.getFloatArray();
@@ -713,47 +714,28 @@ public class ExpanderVerse {
 		buildNormalizedMap();
 	}
 
-	/* BEGIN ExportPixelblazeMap block
-	 * TODO - We'll want a saveMap method at some point.  Here's the implementation from
-	 * pixelTeleporter to use as a guide	
-
- // comparator for sorting.  Used by exportPixeblazeMap()
-	class compareLEDIndex implements Comparator<ScreenLED> {
-
-		@Override
-		public int compare(ScreenLED p1, ScreenLED p2) {
-			return (p1.index < p2.index) ? -1 : 1;
-		}
-	}
-
-
-	 * Convert a list of ScreenLEDs to a Pixelblaze compatible JSON pixel map and
+	/**
+	 * Converts the current coordinate map to a Pixelblaze compatible JSON pixel map and
 	 * write it to the specified file.
-	 * @param obj Linked list of ScreenLEDs representing a displayable object
-	 * @param fileName Name of file to write 
-	 * @param scale Coordinate multiplier for scaling final output 
-	 * @param is3D true for 3D (xyz), false for 2D (xy) 
+	 * @param fileName Name of file to write  
 	 * @return true if successful, false otherwise
-	public boolean exportPixelblazeMap(LinkedList<ScreenLED> obj,String fileName,float scale, boolean is3D) {
+	 */			
+	public boolean exportPixelblazeMap(String fileName) {
 		JSONArray json,mapEntry;
-
-		//sort object by pixel index for export. 
-		@SuppressWarnings("unchecked")
-		LinkedList<ScreenLED> sortedCopy = (LinkedList<ScreenLED>) obj.clone();
-		Collections.sort(sortedCopy,new compareLEDIndex());
+		PVector vec = new PVector();
 
 		json = new JSONArray();
-		for (ScreenLED led : sortedCopy) {
+
+		for (PBXPixel p : pixels) {
+			p.getMapCoordinates(vec);
 			mapEntry = new JSONArray();
-			mapEntry.append(scale * led.x);
-			mapEntry.append(scale * led.y);
-			if (is3D) mapEntry.append(scale * led.z);    
+			mapEntry.append(vec.x);
+			mapEntry.append(vec.y);
+			mapEntry.append(vec.z);    
 
 			json.append(mapEntry);
 		}  
-		return app.saveJSONArray(json,fileName);  
+		return pApp.saveJSONArray(json,fileName);  
 	}
-END - ExportPixelblazeMap block */
-
 }
 
